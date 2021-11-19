@@ -1,7 +1,10 @@
+using Computer.Client.Domain;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddHostedService<Service>();
 
 var app = builder.Build();
 
