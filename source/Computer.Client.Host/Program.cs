@@ -42,8 +42,11 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-//this must be AFTER UseRouting, but BEFORE UseAuthorization
-app.UseCors();
+if (app.Environment.IsDevelopment())
+{
+    //this must be AFTER UseRouting, but BEFORE UseAuthorization
+    app.UseCors();
+}
 
 app.UseAuthorization();
 
