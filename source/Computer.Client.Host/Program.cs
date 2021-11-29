@@ -1,4 +1,5 @@
 using Computer.Client.Domain;
+using Computer.Client.Host.Controllers;
 using Computer.Client.Host.Hubs;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.DependencyInjection;
@@ -7,7 +8,11 @@ using Microsoft.Extensions.Hosting;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddControllersWithViews();
+builder.Services.AddControllersWithViews()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.AddContext<DocumentModelContext>();
+    });
 builder.Services.AddHostedService<Service>();
 
 builder.Services.AddCors(options =>
