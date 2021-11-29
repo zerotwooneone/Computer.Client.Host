@@ -53,5 +53,5 @@ app.UseAuthorization();
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}");
-app.MapHub<Bus>("/bus");
+app.MapHub<BusHub>("/bus");
 app.Run();
