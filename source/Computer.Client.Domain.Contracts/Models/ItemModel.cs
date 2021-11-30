@@ -2,8 +2,8 @@
 
 public class ItemModel
 {
-    public string? Text { get; init; } = null;
-    public string? Url { get; init; } = null;
-    public string? ImageUrl { get; init; } = null;
-    public bool Checked { get; init; } = false;
+    public string? Text { get; set; } = null;
+    public string? Url { get; set; } = null;
+    public string? ImageUrl { get; set; } = null;
+    public bool Checked { get; set; } = false;
 }

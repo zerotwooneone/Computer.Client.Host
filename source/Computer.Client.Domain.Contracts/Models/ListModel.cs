@@ -2,6 +2,6 @@
 
 public class ListModel
 {
-    public string Id { get; init; } = "not set";
-    public IEnumerable<ItemModel> Items { get; init; } = new ItemModel[] { };
+    public string Id { get; set; } = "not set";
+    public IEnumerable<ItemModel> Items { get; set; } = new ItemModel[] { };
 }
