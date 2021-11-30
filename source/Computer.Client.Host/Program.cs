@@ -1,9 +1,8 @@
-using Computer.Client.Domain;
+using Computer.Client.Domain.Contracts.ToDoList;
+using Computer.Client.Domain.ToDoList;
 using Computer.Client.Host.Controllers;
 using Computer.Client.Host.Hubs;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,9 +10,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews()
     .AddJsonOptions(options =>
     {
-        options.JsonSerializerOptions.AddContext<DocumentModelContext>();
+        options.JsonSerializerOptions.AddContext<HostJsonContext>();
     });
-builder.Services.AddHostedService<Service>();
 
 builder.Services.AddCors(options =>
 {
@@ -26,6 +24,7 @@ builder.Services.AddCors(options =>
                 .AllowCredentials();
         });
 });
+builder.Services.AddSingleton<IListService, ListService>();
 builder.Services.AddSignalR();
 
 var app = builder.Build();
