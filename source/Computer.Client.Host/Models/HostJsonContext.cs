@@ -4,7 +4,6 @@ using static Computer.Client.Host.App.DummyAppService;
 
 namespace Computer.Client.Host.Controllers
 {
-    [JsonSerializable(typeof(DocumentModel))]
     [JsonSerializable(typeof(ListModel))]
     [JsonSerializable(typeof(ListGetByIdParam))]
     public partial class HostJsonContext: JsonSerializerContext
