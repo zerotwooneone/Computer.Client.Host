@@ -1,31 +1,32 @@
 using Microsoft.AspNetCore.Mvc;
 
-namespace Computer.Client.Host.Controllers;
-
-//[ValidateAntiForgeryToken]
-public class DocumentController : Controller
+namespace Computer.Client.Host.Controllers
 {
-    [HttpGet]
-    public async Task<IActionResult> Get(string id)
+    //[ValidateAntiForgeryToken]
+    public class DocumentController : Controller
     {
-
-        return Ok(new DocumentModel
+        [HttpGet]
+        public async Task<IActionResult> Get(string id)
         {
-            Strings =
+
+            return Ok(new DocumentModel
+            {
+                Strings =
                 {
                     {"this", "one"},
                     {"id", id}
                 },
-            Decimals =
+                Decimals =
                 {
                     {"somthing", 42.42m}
                 }
-        });
-    }
+            });
+        }
 
-    [HttpPut]
-    public async Task<IActionResult> Put(string id, [FromBody] DocumentModel document)
-    {
-        return Ok(id);
+        [HttpPut]
+        public async Task<IActionResult> Put(string id, [FromBody] DocumentModel document)
+        {
+            return Ok(id);
+        }
     }
 }

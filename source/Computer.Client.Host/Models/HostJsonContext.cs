@@ -1,11 +1,13 @@
 ﻿using Computer.Client.Domain.Contracts.Models;
 using System.Text.Json.Serialization;
+using static Computer.Client.Host.App.DummyAppService;
 
 namespace Computer.Client.Host.Controllers
 {
     [JsonSerializable(typeof(DocumentModel))]
     [JsonSerializable(typeof(ListModel))]
-    internal partial class HostJsonContext: JsonSerializerContext
+    [JsonSerializable(typeof(ListGetByIdParam))]
+    public partial class HostJsonContext: JsonSerializerContext
     {
         
     }

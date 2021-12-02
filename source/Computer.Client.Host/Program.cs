@@ -1,8 +1,8 @@
-using Computer.Client.Domain.Contracts.ToDoList;
+using Computer.Client.Domain;
 using Computer.Client.Domain.ToDoList;
+using Computer.Client.Host.App;
 using Computer.Client.Host.Controllers;
 using Computer.Client.Host.Hubs;
-using Microsoft.Extensions.DependencyInjection.Extensions;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,6 +25,8 @@ builder.Services.AddCors(options =>
         });
 });
 builder.Services.AddSingleton<IListService, ListService>();
+builder.Services.AddSingleton<HostJsonContext>();
+builder.Services.AddSingleton<IAppService, DummyAppService>();
 builder.Services.AddSignalR();
 
 var app = builder.Build();
