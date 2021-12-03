@@ -27,6 +27,7 @@ builder.Services.AddCors(options =>
 builder.Services.AddSingleton<IListService, ListService>();
 builder.Services.AddSingleton<HostJsonContext>();
 builder.Services.AddSingleton<IAppService, DummyAppService>();
+builder.Services.AddSingleton<IAppConnectionRepo, AppConnectionRepo>();
 builder.Services.AddSignalR();
 
 var app = builder.Build();
