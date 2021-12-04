@@ -4,17 +4,18 @@ namespace Computer.Client.Host.App;
 
 public class AppConnectionRepo : IAppConnectionRepo
 {
-    private readonly ConcurrentDictionary<string, AppConnectionDetails> _details = new();
+    private readonly ConcurrentDictionary<AppConnection, AppConnectionDetails> _details = new();
 
-    public async Task<AppConnectionDetails> GetOrCreate(string clientId, string instanceId)
+    public Task<AppConnectionDetails> GetOrCreate(string appId, string clientId, string instanceId)
     {
-        if(_details.TryGetValue(clientId, out AppConnectionDetails? existing))
+        var appConnection = new AppConnection(appId, clientId, instanceId);
+        if (_details.TryGetValue(appConnection, out AppConnectionDetails? existing))
         {
-            return existing;
+            return Task.FromResult(existing);
         }
         //todo: call app, ask if instance id is ok
         var dx = new TaskCompletionSource<AppConnectionDetails>();
-        _details.AddOrUpdate(clientId, 
+        _details.AddOrUpdate(appConnection, 
             s =>
             {
                 var d = new AppConnectionDetails { InstanceId = instanceId };
@@ -28,19 +29,23 @@ public class AppConnectionRepo : IAppConnectionRepo
                 dx.SetResult(d);
                 return d;
             });
-        return await dx.Task;
+        return dx.Task;
     }
 
-    public async Task<bool> TryDelete(string clientId, string instanceId)
+    public Task<bool> TryDelete(string appId, string clientId, string instanceId)
     {
-        return (await DeleteAllByClientId(clientId)).Any();
+        var appConnection = new AppConnection(appId, clientId, instanceId);
+        return Task.FromResult(_details.TryRemove(appConnection, out _));
     }
-    public async Task<IEnumerable<AppConnectionDetails>> DeleteAllByClientId(string clientId)
+    public Task<IEnumerable<AppConnectionDetails>> DeleteAllByClientId(string clientId)
     {
-        if (!_details.TryRemove(clientId, out var details))
+        var d = _details.Where(kvp => kvp.Key.clientId == clientId);
+        foreach(var kvp in d)
         {
-            return Enumerable.Empty<AppConnectionDetails>();
+            _details.TryRemove(kvp.Key, out _);
         }
-        return new[] { details };
+        return Task.FromResult(d.Select(kvp=>kvp.Value));
     }
+
+    internal record AppConnection(string appId, string clientId, string instanceId);
 }
