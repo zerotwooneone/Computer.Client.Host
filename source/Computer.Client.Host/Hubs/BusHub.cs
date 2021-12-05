@@ -10,13 +10,26 @@ public class BusHub : Hub
     /// todo: remove this
     /// </summary>
     private readonly IHubContext<BusHub> busHubContext;
+    private readonly ILogger<BusHub> logger;
+    private readonly IEventHandler eventHandler;
 
     public BusHub(IAppConnectionRepo appConnectionRepo,
-        IHubContext<BusHub> busHubContext)
+        IHubContext<BusHub> busHubContext,
+        ILogger<BusHub> logger,
+        IEventHandler eventHandler)
     {
         this.appConnectionRepo = appConnectionRepo;
         this.busHubContext = busHubContext;
+        this.logger = logger;
+        this.eventHandler = eventHandler;
+        this.eventHandler.ToHubEvent += OnParameterEvent;
     }
+
+    private async void OnParameterEvent(object? sender, BusToHubEvent e)
+    {
+        await SendEventToFrontEnd(e.subject, e.eventId, e.eventObj, e.correlationId);
+    }
+
     public async Task SendMessage(string user, string message)
     {
         await Clients.All.SendAsync("ReceiveMessage", user, message);
@@ -24,6 +37,7 @@ public class BusHub : Hub
 
     public override Task OnConnectedAsync()
     {
+        logger.LogDebug($"Connected {Context.ConnectionId}");
         return base.OnConnectedAsync();
     }
 
@@ -31,6 +45,7 @@ public class BusHub : Hub
     {
         var clientId = Context.ConnectionId;
         var deleted = await appConnectionRepo.DeleteAllByClientId(clientId);
+        logger.LogDebug($"Disconnected {clientId} deletedApp:{deleted}");
         await base.OnDisconnectedAsync(exception);
     }
 
@@ -57,6 +72,8 @@ public class BusHub : Hub
             await SendToAppUi(appId, instanceId, new { test = "something" });
         });
         t.Start();
+
+        eventHandler.Test();
 
         return await appConnectionRepo.GetOrCreate(appId, clientId, instanceId);
     }
@@ -95,4 +112,30 @@ public class BusHub : Hub
         }
         await busHubContext.Clients.Group(GetAppGroupName(appId, instanceId)).SendAsync($"ToAppUi:{appId}.{instanceId}", args);
     }
+
+    public async Task SendEventToFrontEnd(string subject, string? eventId = null, object? eventObj = null, string? correlationId = null)
+    {
+        var internalEventId = string.IsNullOrWhiteSpace(eventId)
+            ? Guid.NewGuid().ToString()
+            : eventId;
+        var internalCorrelationId = string.IsNullOrWhiteSpace(correlationId)
+            ? Guid.NewGuid().ToString()
+            : correlationId;
+        await InternalSendEventToFrontEnd(subject, eventObj, internalEventId, internalCorrelationId);
+    }
+
+    private async Task InternalSendEventToFrontEnd(string subject, object? eventObj, string eventId, string correlationId)
+    {
+        var @event = new EventForFrontEnd(subject, eventId, correlationId, eventObj);
+        await busHubContext.Clients.All.SendAsync("EventToFrontEnd", @event);
+    }
+
+    public async Task SendEventToBackend(EventForBackEnd @event)
+    {
+        await eventHandler.HandleBackendEvent(@event);
+    }
+
+    protected record EventForFrontEnd(string subject, string eventId, string correlationId, object? eventObj = null);
 }
+
+

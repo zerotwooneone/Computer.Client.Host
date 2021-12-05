@@ -1,8 +1,10 @@
 using Computer.Client.Domain;
 using Computer.Client.Domain.ToDoList;
 using Computer.Client.Host.App;
+using Computer.Client.Host.Bus;
 using Computer.Client.Host.Controllers;
 using Computer.Client.Host.Hubs;
+using System.Reactive.Concurrency;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -28,6 +30,9 @@ builder.Services.AddSingleton<IListService, ListService>();
 builder.Services.AddSingleton<HostJsonContext>();
 builder.Services.AddSingleton<IAppService, DummyAppService>();
 builder.Services.AddSingleton<IAppConnectionRepo, AppConnectionRepo>();
+builder.Services.AddSingleton<IScheduler>(Scheduler.Default);
+builder.Services.AddSingleton<IBus, ReactiveBus>();
+builder.Services.AddSingleton<IEventHandler, HubRouter>();
 builder.Services.AddSignalR();
 
 var app = builder.Build();
