@@ -5,8 +5,6 @@ public interface IEventHandler
     
     Task HandleBackendEvent(EventForBackEnd @event);
 
-    event EventHandler<BusToHubEvent> ToHubEvent;
-
     void Test();
 }
 

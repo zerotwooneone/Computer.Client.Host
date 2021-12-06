@@ -1,4 +1,5 @@
 ﻿using Computer.Client.Host.Hubs;
+using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
 
 namespace Computer.Client.Host.Bus;
@@ -6,6 +7,7 @@ namespace Computer.Client.Host.Bus;
 public class HubRouter : IEventHandler, IHubRouter
 {
     private readonly IBus bus;
+    private readonly IHubContext<BusHub, IBusHub> _busHub;
     private readonly ConcurrentDictionary<string, SubjectConfig> subjectsFromUiToBackend = new ConcurrentDictionary<string, SubjectConfig>(new Dictionary<string, SubjectConfig>
     {
         {"subject name", new SubjectConfig(typeof(int)) },
@@ -16,11 +18,12 @@ public class HubRouter : IEventHandler, IHubRouter
     });
     private IEnumerable<IDisposable>? _subscriptions = null;
     
-    public HubRouter(IBus bus)
+    public HubRouter(
+        IBus bus,
+        IHubContext<BusHub, IBusHub> busHub)
     {
         this.bus = bus;
-        
-        
+        _busHub = busHub;
     }
 
     public void ReStartListening()
@@ -51,10 +54,9 @@ public class HubRouter : IEventHandler, IHubRouter
 
     private void ConvertToHubEvent(BusEvent busEvent)
     {
-        ToHubEvent?.Invoke(this, new BusToHubEvent(busEvent.Subject, busEvent.EventId, busEvent.CorrelationId, busEvent.Param));
+        var @event = new EventForFrontEnd(busEvent.Subject, busEvent.EventId, busEvent.CorrelationId, busEvent.Param);
+        _busHub.Clients.All.EventToFrontEnd(@event);
     }
-
-    public event EventHandler<BusToHubEvent> ToHubEvent;
 
     public Task HandleBackendEvent(EventForBackEnd @event)
     {

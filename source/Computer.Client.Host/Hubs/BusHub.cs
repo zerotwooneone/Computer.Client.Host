@@ -3,18 +3,18 @@ using Microsoft.AspNetCore.SignalR;
 
 namespace Computer.Client.Host.Hubs;
 
-public class BusHub : Hub
+public partial class BusHub : Hub<IBusHub>
 {
     private readonly IAppConnectionRepo appConnectionRepo;
     /// <summary>
-    /// todo: remove this
+    /// this allows async sending
     /// </summary>
-    private readonly IHubContext<BusHub> busHubContext;
+    private readonly IHubContext<BusHub, IBusHub> busHubContext;
     private readonly ILogger<BusHub> logger;
     private readonly IEventHandler eventHandler;
 
     public BusHub(IAppConnectionRepo appConnectionRepo,
-        IHubContext<BusHub> busHubContext,
+        IHubContext<BusHub, IBusHub> busHubContext,
         ILogger<BusHub> logger,
         IEventHandler eventHandler)
     {
@@ -22,17 +22,6 @@ public class BusHub : Hub
         this.busHubContext = busHubContext;
         this.logger = logger;
         this.eventHandler = eventHandler;
-        this.eventHandler.ToHubEvent += OnParameterEvent;
-    }
-
-    private async void OnParameterEvent(object? sender, BusToHubEvent e)
-    {
-        await SendEventToFrontEnd(e.subject, e.eventId, e.eventObj, e.correlationId);
-    }
-
-    public async Task SendMessage(string user, string message)
-    {
-        await Clients.All.SendAsync("ReceiveMessage", user, message);
     }
 
     public override Task OnConnectedAsync()
@@ -65,13 +54,6 @@ public class BusHub : Hub
     {
         var clientId = Context.ConnectionId;
         await Groups.AddToGroupAsync(Context.ConnectionId, GetAppGroupName(appId, instanceId));
-
-        var t = new Thread(async () =>
-        {
-            Thread.Sleep(2000);
-            await SendToAppUi(appId, instanceId, new { test = "something" });
-        });
-        t.Start();
 
         eventHandler.Test();
 
@@ -110,32 +92,13 @@ public class BusHub : Hub
         {
             throw new ArgumentException($"'{nameof(instanceId)}' cannot be null or whitespace.", nameof(instanceId));
         }
-        await busHubContext.Clients.Group(GetAppGroupName(appId, instanceId)).SendAsync($"ToAppUi:{appId}.{instanceId}", args);
-    }
-
-    public async Task SendEventToFrontEnd(string subject, string? eventId = null, object? eventObj = null, string? correlationId = null)
-    {
-        var internalEventId = string.IsNullOrWhiteSpace(eventId)
-            ? Guid.NewGuid().ToString()
-            : eventId;
-        var internalCorrelationId = string.IsNullOrWhiteSpace(correlationId)
-            ? Guid.NewGuid().ToString()
-            : correlationId;
-        await InternalSendEventToFrontEnd(subject, eventObj, internalEventId, internalCorrelationId);
-    }
-
-    private async Task InternalSendEventToFrontEnd(string subject, object? eventObj, string eventId, string correlationId)
-    {
-        var @event = new EventForFrontEnd(subject, eventId, correlationId, eventObj);
-        await busHubContext.Clients.All.SendAsync("EventToFrontEnd", @event);
+        //await busHubContext.Clients.Group(GetAppGroupName(appId, instanceId)).SendAsync($"ToAppUi:{appId}.{instanceId}", args);
     }
 
     public async Task SendEventToBackend(EventForBackEnd @event)
     {
         await eventHandler.HandleBackendEvent(@event);
     }
-
-    protected record EventForFrontEnd(string subject, string eventId, string correlationId, object? eventObj = null);
 }
 
 
