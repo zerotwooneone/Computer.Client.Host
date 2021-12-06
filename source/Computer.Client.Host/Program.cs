@@ -33,7 +33,9 @@ builder.Services.AddSingleton<IAppConnectionRepo, AppConnectionRepo>();
 builder.Services.AddSingleton<IScheduler>(Scheduler.Default);
 builder.Services.AddSingleton<IBus, ReactiveBus>();
 builder.Services.AddSingleton<IEventHandler, HubRouter>();
+builder.Services.AddSingleton<IHubRouter, HubRouter>();
 builder.Services.AddSignalR();
+builder.Services.AddHostedService<BusInitialization>();
 
 var app = builder.Build();
 

@@ -13,42 +13,31 @@ public class ReactiveBus : IBus
         this.scheduler = scheduler;
         _bus = new Subject<BusEvent>();
     }
-    public Task Publish(string subject, Type type, object obj)
+    public Task Publish(string subject, Type type, object obj, string? eventId = null, string? correlationId = null)
     {
-        var busEvent = new BusEvent(subject, type, obj);
+        var busEvent = new BusEvent(subject, type, obj, eventId, correlationId);
         _bus.OnNext(busEvent);
         return Task.CompletedTask;
     }
 
-    public Task Publish(string subject)
+    public Task Publish(string subject, string? eventId = null, string? correlationId = null)
     {
-        var busEvent = new BusEvent(subject);
+        var busEvent = new BusEvent(subject, eventId: eventId, correlationId: correlationId);
         _bus.OnNext(busEvent);
         return Task.CompletedTask;
     }
 
-    public IDisposable Subscribe(string subject, Type type, Action<object> callback)
+    public IDisposable Subscribe(string subject, Type type, Action<BusEvent> callback)
     {
         return _bus
             .ObserveOn(scheduler)
-            .Subscribe(e =>
-            {
-                if (e.param != null)
-                {
-                    callback(e.param);
-                }
-            });
+            .Subscribe(callback);
     }
 
-    public IDisposable Subscribe(string subject, Action callback)
+    public IDisposable Subscribe(string subject, Action<BusEvent> callback)
     {
         return _bus
             .ObserveOn(scheduler)
-            .Subscribe(e =>
-            {
-                callback();
-            });
+            .Subscribe(callback);
     }
-
-    private record BusEvent(string subject, Type? type = null, object? param = null);
 }

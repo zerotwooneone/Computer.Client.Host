@@ -3,7 +3,7 @@ using System.Collections.Concurrent;
 
 namespace Computer.Client.Host.Bus;
 
-public class HubRouter : IEventHandler
+public class HubRouter : IEventHandler, IHubRouter
 {
     private readonly IBus bus;
     private readonly ConcurrentDictionary<string, SubjectConfig> subjectsFromUiToBackend = new ConcurrentDictionary<string, SubjectConfig>(new Dictionary<string, SubjectConfig>
@@ -14,30 +14,44 @@ public class HubRouter : IEventHandler
     {
         {"subject name", new SubjectConfig(typeof(int)) },
     });
+    private IEnumerable<IDisposable>? _subscriptions = null;
     
     public HubRouter(IBus bus)
     {
         this.bus = bus;
         
+        
+    }
+
+    public void ReStartListening()
+    {
+        StopListening();
         var subs = new List<IDisposable>();
-        foreach(var subject in subjectsFromBackendToUi)
+        foreach (var subject in subjectsFromBackendToUi)
         {
             var subscription = subject.Value.type == null
-                ? bus.Subscribe(subject.Key, ()=>FireEvent(subject.Key))
-                : bus.Subscribe(subject.Key, subject.Value.type, o=>FireParamEvent(subject.Key, o));
+                ? bus.Subscribe(subject.Key, e => ConvertToHubEvent(e))
+                : bus.Subscribe(subject.Key, subject.Value.type, e => ConvertToHubEvent(e));
 
             subs.Add(subscription);
         }
+        _subscriptions = subs;
+    }
+    public void StopListening()
+    {
+        if(_subscriptions == null)
+        {
+            return;
+        }
+        foreach (var subscription in _subscriptions) { 
+            subscription.Dispose(); 
+        }
+        _subscriptions = null;
     }
 
-    private void FireEvent(string subject)
+    private void ConvertToHubEvent(BusEvent busEvent)
     {
-        ToHubEvent?.Invoke(this, new BusToHubEvent(subject, "", ""));
-    }
-
-    private void FireParamEvent(string subject, object obj)
-    {
-        ToHubEvent?.Invoke(this, new BusToHubEvent(subject, "", "", obj));
+        ToHubEvent?.Invoke(this, new BusToHubEvent(busEvent.Subject, busEvent.EventId, busEvent.CorrelationId, busEvent.Param));
     }
 
     public event EventHandler<BusToHubEvent> ToHubEvent;
