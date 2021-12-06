@@ -31,6 +31,7 @@ public class ReactiveBus : IBus
     {
         return _bus
             .ObserveOn(scheduler)
+            .Where(e => e.Subject == subject)
             .Subscribe(callback);
     }
 
@@ -38,6 +39,7 @@ public class ReactiveBus : IBus
     {
         return _bus
             .ObserveOn(scheduler)
+            .Where(e => e.Subject == subject)
             .Subscribe(callback);
     }
 }
