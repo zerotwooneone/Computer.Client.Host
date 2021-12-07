@@ -1,9 +1,11 @@
-﻿namespace Computer.Client.Host.Hubs;
+﻿using System.Text.Json;
+
+namespace Computer.Client.Host.Hubs;
 
 public interface IEventHandler
 {
     
-    Task HandleBackendEvent(EventForBackend @event);
+    Task HandleBackendEvent(string subject, string eventId, string correlationId, JsonElement? eventObj = null);
 
     void Test();
 }

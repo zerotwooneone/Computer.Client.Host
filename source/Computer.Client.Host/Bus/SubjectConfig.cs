@@ -1,3 +1,18 @@
-﻿namespace Computer.Client.Host.Bus;
+﻿using System.Text.Json;
 
-public record SubjectConfig(Type? type = null);
+namespace Computer.Client.Host.Bus;
+
+public record SubjectConfig
+{
+    public readonly Type? type = null;
+    public readonly Func<Type, JsonElement, object>? ConvertFromHub = null;
+    public SubjectConfig()
+    {
+
+    }
+    public SubjectConfig(Type type, Func<Type, JsonElement, object> Convert)
+    {
+        this.type = type;
+        this.ConvertFromHub = Convert;
+    }
+}

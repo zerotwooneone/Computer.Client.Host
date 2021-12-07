@@ -1,4 +1,5 @@
-﻿using System.Reactive.Concurrency;
+﻿using System.Reactive;
+using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 
@@ -27,19 +28,29 @@ public class ReactiveBus : IBus
         return Task.CompletedTask;
     }
 
-    public IDisposable Subscribe(string subject, Type type, Action<BusEvent> callback)
+    public IDisposable Subscribe(string subject, Type type, Func<BusEvent, Task> callback)
     {
         return _bus
             .ObserveOn(scheduler)
             .Where(e => e.Subject == subject)
-            .Subscribe(callback);
+            .SelectMany(async p =>
+            {
+                await callback(p);
+                return Unit.Default;
+            })
+            .Subscribe();
     }
 
-    public IDisposable Subscribe(string subject, Action<BusEvent> callback)
+    public IDisposable Subscribe(string subject, Func<BusEvent, Task> callback)
     {
         return _bus
             .ObserveOn(scheduler)
             .Where(e => e.Subject == subject)
-            .Subscribe(callback);
+            .SelectMany(async p =>
+            {
+                await callback(p);
+                return Unit.Default;
+            })
+            .Subscribe();
     }
 }

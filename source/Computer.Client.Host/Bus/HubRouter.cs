@@ -1,6 +1,10 @@
-﻿using Computer.Client.Host.Hubs;
+﻿using Computer.Client.Host.App;
+using Computer.Client.Host.Controllers;
+using Computer.Client.Host.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
+using System.Text.Json;
+using AppEvents = Computer.Client.Host.App.Events;
 
 namespace Computer.Client.Host.Bus;
 
@@ -8,15 +12,24 @@ public class HubRouter : IEventHandler, IHubRouter
 {
     private readonly IBus bus;
     private readonly IHubContext<BusHub, IBusHub> _busHub;
-    private readonly ConcurrentDictionary<string, SubjectConfig> subjectsFromUiToBackend = new ConcurrentDictionary<string, SubjectConfig>(new Dictionary<string, SubjectConfig>
+    private readonly ConcurrentDictionary<string, SubjectConfig> toBackendFromUiToBackend;
+
+    private static object DirectConvert(Type type, JsonElement from)
     {
-        {"subject name", new SubjectConfig(typeof(int)) },
-    });
-    private readonly ConcurrentDictionary<string, SubjectConfig> subjectsFromBackendToUi = new ConcurrentDictionary<string, SubjectConfig>(new Dictionary<string, SubjectConfig>
+        return Convert.ChangeType(from, type);
+    }
+
+    private readonly ConcurrentDictionary<string, SubjectConfig> toUiFromBackendToUi = new ConcurrentDictionary<string, SubjectConfig>(new Dictionary<string, SubjectConfig>
     {
-        {"subject name", new SubjectConfig(typeof(int)) },
+        {"subject name", new SubjectConfig(typeof(int), DirectConvert) },
+        { AppEvents.GetConnectionResponse, new SubjectConfig(typeof(AppConnectionResponse), (type, from) =>
+        {
+            throw new NotImplementedException();
+        }) },
+        { AppEvents.CloseConnectionResponse, new SubjectConfig() },
     });
-    private IEnumerable<IDisposable>? _subscriptions = null;
+    
+    private IEnumerable<IDisposable> _subscriptions = Enumerable.Empty<IDisposable>();
     
     public HubRouter(
         IBus bus,
@@ -24,13 +37,28 @@ public class HubRouter : IEventHandler, IHubRouter
     {
         this.bus = bus;
         _busHub = busHub;
+
+        toBackendFromUiToBackend = new ConcurrentDictionary<string, SubjectConfig>(new Dictionary<string, SubjectConfig>
+        {
+            {"subject name", new SubjectConfig(typeof(int), DirectConvert)},
+            { AppEvents.GetConnection, new SubjectConfig(typeof(AppConnectionRequest), (type, from) =>
+            {
+                var o = JsonSerializer.Deserialize<AppConnectionRequest>(from, HostJsonContext.Default.AppConnectionRequest);
+                return o;
+            }) },
+            { AppEvents.CloseConnection, new SubjectConfig(typeof(AppDisconnectRequest), (type, from) =>
+            {
+                var o = JsonSerializer.Deserialize<AppDisconnectRequest>(from, HostJsonContext.Default.AppDisconnectRequest);
+                return o;
+            }) },
+        });
     }
 
     public void ReStartListening()
     {
         StopListening();
         var subs = new List<IDisposable>();
-        foreach (var subject in subjectsFromBackendToUi)
+        foreach (var subject in toUiFromBackendToUi)
         {
             var subscription = subject.Value.type == null
                 ? bus.Subscribe(subject.Key, e => ConvertToHubEvent(e))
@@ -42,35 +70,38 @@ public class HubRouter : IEventHandler, IHubRouter
     }
     public void StopListening()
     {
-        if(_subscriptions == null)
-        {
-            return;
+        foreach (var subscription in _subscriptions) {
+            try
+            {
+                subscription.Dispose();
+            }
+            catch {
+                //nothing, we just dont want to fail while disposing
+            }            
         }
-        foreach (var subscription in _subscriptions) { 
-            subscription.Dispose(); 
-        }
-        _subscriptions = null;
+        _subscriptions = Enumerable.Empty<IDisposable>();
     }
 
-    private void ConvertToHubEvent(BusEvent busEvent)
+    private async Task ConvertToHubEvent(BusEvent busEvent)
     {
         var @event = new EventForFrontEnd(busEvent.Subject, busEvent.EventId, busEvent.CorrelationId, busEvent.Param);
-        _busHub.Clients.All.EventToFrontEnd(@event);
+        await _busHub.Clients.All.EventToFrontEnd(@event);
     }
 
-    public Task HandleBackendEvent(EventForBackend @event)
+    public Task HandleBackendEvent(string subject, string eventId, string correlationId, JsonElement? eventObj = null)
     {
-        if (subjectsFromUiToBackend.TryGetValue(@event.subject, out SubjectConfig? config))
+        if (toBackendFromUiToBackend.TryGetValue(subject, out SubjectConfig? config))
         {
             if (config.type is null)
             {
-                bus.Publish(@event.subject);
+                bus.Publish(subject);
             }
             else
             {
-                if (@event.eventObj != null)
+                if (eventObj != null && config.ConvertFromHub != null)
                 {
-                    bus.Publish(@event.subject, config.type, @event.eventObj);
+                    var obj = config.ConvertFromHub(config.type, (JsonElement)eventObj);
+                    bus.Publish(subject, config.type, obj, eventId, correlationId);
                 }
             }
         }

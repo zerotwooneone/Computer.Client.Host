@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.SignalR;
+using System.Text.Json;
 
 namespace Computer.Client.Host.Hubs;
 
@@ -36,8 +37,8 @@ public partial class BusHub : Hub<IBusHub>
         {
             return;
         }
-        var eventForBackend = new EventForBackend(subject, eventId, correlationId, eventObj);
-        await eventHandler.HandleBackendEvent(eventForBackend);
+        
+        await eventHandler.HandleBackendEvent(subject, eventId, correlationId, (JsonElement?)eventObj);
     }
 }
 

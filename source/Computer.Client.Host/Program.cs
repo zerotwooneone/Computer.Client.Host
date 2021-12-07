@@ -32,6 +32,7 @@ builder.Services.AddSingleton<IAppService, DummyAppService>();
 builder.Services.AddSingleton<IAppConnectionRepo, AppConnectionRepo>();
 builder.Services.AddSingleton<IScheduler>(Scheduler.Default);
 builder.Services.AddSingleton<IBus, ReactiveBus>();
+builder.Services.AddSingleton<IComputerAppService, ComputerAppService>();
 
 builder.Services.AddSingleton<HubRouter>(); //this ensures only one instace, even though we implement multiple interfaces
 builder.Services.AddSingleton<IEventHandler>(x => x.GetRequiredService<HubRouter>());
