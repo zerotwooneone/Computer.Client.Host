@@ -3,7 +3,7 @@
 public interface IEventHandler
 {
     
-    Task HandleBackendEvent(EventForBackEnd @event);
+    Task HandleBackendEvent(EventForBackend @event);
 
     void Test();
 }

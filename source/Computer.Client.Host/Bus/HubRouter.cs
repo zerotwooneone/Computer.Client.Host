@@ -58,7 +58,7 @@ public class HubRouter : IEventHandler, IHubRouter
         _busHub.Clients.All.EventToFrontEnd(@event);
     }
 
-    public Task HandleBackendEvent(EventForBackEnd @event)
+    public Task HandleBackendEvent(EventForBackend @event)
     {
         if (subjectsFromUiToBackend.TryGetValue(@event.subject, out SubjectConfig? config))
         {
