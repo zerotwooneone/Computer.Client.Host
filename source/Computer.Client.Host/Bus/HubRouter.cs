@@ -12,14 +12,14 @@ public class HubRouter : IEventHandler, IHubRouter
 {
     private readonly IBus bus;
     private readonly IHubContext<BusHub, IBusHub> _busHub;
-    private readonly ConcurrentDictionary<string, SubjectConfig> toBackendFromUiToBackend;
+    private readonly ConcurrentDictionary<string, SubjectConfig> _fromUiToBackend;
 
     private static object DirectConvert(Type type, JsonElement from)
     {
         return Convert.ChangeType(from, type);
     }
 
-    private readonly ConcurrentDictionary<string, SubjectConfig> toUiFromBackendToUi = new ConcurrentDictionary<string, SubjectConfig>(new Dictionary<string, SubjectConfig>
+    private readonly ConcurrentDictionary<string, SubjectConfig> fromBackendToUi = new ConcurrentDictionary<string, SubjectConfig>(new Dictionary<string, SubjectConfig>
     {
         {"subject name", new SubjectConfig(typeof(int), DirectConvert) },
         { AppEvents.GetConnectionResponse, new SubjectConfig(typeof(AppConnectionResponse), (type, from) =>
@@ -38,7 +38,7 @@ public class HubRouter : IEventHandler, IHubRouter
         this.bus = bus;
         _busHub = busHub;
 
-        toBackendFromUiToBackend = new ConcurrentDictionary<string, SubjectConfig>(new Dictionary<string, SubjectConfig>
+        _fromUiToBackend = new ConcurrentDictionary<string, SubjectConfig>(new Dictionary<string, SubjectConfig>
         {
             {"subject name", new SubjectConfig(typeof(int), DirectConvert)},
             { AppEvents.GetConnection, new SubjectConfig(typeof(AppConnectionRequest), (type, from) =>
@@ -58,7 +58,7 @@ public class HubRouter : IEventHandler, IHubRouter
     {
         StopListening();
         var subs = new List<IDisposable>();
-        foreach (var subject in toUiFromBackendToUi)
+        foreach (var subject in fromBackendToUi)
         {
             var subscription = subject.Value.type == null
                 ? bus.Subscribe(subject.Key, e => ConvertToHubEvent(e))
@@ -90,7 +90,7 @@ public class HubRouter : IEventHandler, IHubRouter
 
     public Task HandleBackendEvent(string subject, string eventId, string correlationId, JsonElement? eventObj = null)
     {
-        if (toBackendFromUiToBackend.TryGetValue(subject, out SubjectConfig? config))
+        if (_fromUiToBackend.TryGetValue(subject, out SubjectConfig? config))
         {
             if (config.type is null)
             {

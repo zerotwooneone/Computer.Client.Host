@@ -5,6 +5,11 @@ using Computer.Client.Host.Bus;
 using Computer.Client.Host.Controllers;
 using Computer.Client.Host.Hubs;
 using System.Reactive.Concurrency;
+using Computer.Bus.Contracts;
+using Computer.Bus.ProtobuffNet;
+using Computer.Bus.RabbitMq;
+using Computer.Bus.RabbitMq.Client;
+using Computer.Client.Host.ExternalBus;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +42,17 @@ builder.Services.AddSingleton<IComputerAppService, ComputerAppService>();
 builder.Services.AddSingleton<HubRouter>(); //this ensures only one instace, even though we implement multiple interfaces
 builder.Services.AddSingleton<IEventHandler>(x => x.GetRequiredService<HubRouter>());
 builder.Services.AddSingleton<IHubRouter>(x => x.GetRequiredService<HubRouter>());
+
+builder.Services.AddSingleton<ISerializer, ProtoSerializer>();
+builder.Services.AddSingleton<IConnectionFactory, SingletonConnectionFactory>();
+builder.Services.AddSingleton<IBusClient>(serviceProvider =>
+{
+    var clientFactory = new ClientFactory();
+    var serializer = serviceProvider.GetService<ISerializer>() ?? throw new InvalidOperationException();
+    var connectionFactory = serviceProvider.GetService<IConnectionFactory>() ?? throw new InvalidOperationException();
+    return clientFactory.Create(serializer , connectionFactory);
+});
+builder.Services.AddSingleton<ExternalRouter>();
 
 builder.Services.AddSignalR();
 builder.Services.AddHostedService<BusInitialization>();

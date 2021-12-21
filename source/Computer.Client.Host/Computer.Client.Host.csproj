@@ -7,6 +7,9 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="computer.apps.todolist.contracts" Version="0.0.1" />
+    <PackageReference Include="computer.bus.protobuffnet" Version="0.0.1" />
+    <PackageReference Include="computer.bus.rabbitmq" Version="0.0.6" />
     <PackageReference Include="System.Reactive.Linq" Version="5.0.0" />
   </ItemGroup>
 

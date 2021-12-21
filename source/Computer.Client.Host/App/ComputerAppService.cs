@@ -13,12 +13,12 @@ public class ComputerAppService : IComputerAppService
     }
     public Task ReStartListening()
     {
-        subscriptions.Add(
-            bus.Subscribe<AppConnectionRequest>(Events.GetConnection, OnConnectionRequest)
-        );
-        subscriptions.Add(
-            bus.Subscribe<AppDisconnectRequest>(Events.CloseConnection, OnDisconnectRequest)
-        );
+        // subscriptions.Add(
+        //     bus.Subscribe<AppConnectionRequest>(Events.GetConnection, OnConnectionRequest)
+        // );
+        // subscriptions.Add(
+        //     bus.Subscribe<AppDisconnectRequest>(Events.CloseConnection, OnDisconnectRequest)
+        // );
         return Task.CompletedTask;
     }
 
@@ -47,6 +47,8 @@ public class ComputerAppService : IComputerAppService
     private async Task OnConnectionRequest(BusEvent<AppConnectionRequest> busEvent)
     {
         var instanceId = busEvent.Param.instanceId ?? Guid.NewGuid().ToString();
+        await Task.Delay(100); //simulate some work
+        //todo: tell BusHub to connect the application so we can skip the bus
         await bus.Publish(Events.GetConnectionResponse, new AppConnectionResponse(instanceId), correlationId: busEvent.CorrelationId);
     }
     
