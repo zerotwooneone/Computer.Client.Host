@@ -7,14 +7,17 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="computer.apps.todolist.contracts" Version="0.0.1" />
-    <PackageReference Include="computer.bus.protobuffnet" Version="0.0.1" />
-    <PackageReference Include="computer.bus.rabbitmq" Version="0.0.6" />
+    <PackageReference Include="computer.bus.domain" Version="0.0.4" />
+    <PackageReference Include="computer.bus.protobuffnet" Version="0.0.3" />
     <PackageReference Include="System.Reactive.Linq" Version="5.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <ProjectReference Include="..\Computer.Client.Domain\Computer.Client.Domain.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="App\Model" />
   </ItemGroup>
 
 </Project>

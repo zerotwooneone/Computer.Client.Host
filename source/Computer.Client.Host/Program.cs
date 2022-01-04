@@ -1,4 +1,3 @@
-using Computer.Client.Domain;
 using Computer.Client.Domain.ToDoList;
 using Computer.Client.Host.App;
 using Computer.Client.Host.Bus;
@@ -8,7 +7,9 @@ using System.Reactive.Concurrency;
 using Computer.Bus.Contracts;
 using Computer.Bus.ProtobuffNet;
 using Computer.Bus.RabbitMq;
-using Computer.Bus.RabbitMq.Client;
+using Computer.Bus.RabbitMq.Contracts;
+using Computer.Client.Domain.Contracts.App;
+using Computer.Client.Host.Domain;
 using Computer.Client.Host.ExternalBus;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -55,6 +56,7 @@ builder.Services.AddSingleton<IBusClient>(serviceProvider =>
 builder.Services.AddSingleton<ExternalRouter>();
 
 builder.Services.AddSignalR();
+builder.Services.AddDomain(builder.Configuration);
 builder.Services.AddHostedService<BusInitialization>();
 
 var app = builder.Build();

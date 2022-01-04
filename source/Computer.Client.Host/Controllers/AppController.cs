@@ -1,4 +1,5 @@
 ﻿using Computer.Client.Domain;
+using Computer.Client.Domain.Contracts.App;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CSharp.RuntimeBinder;
 

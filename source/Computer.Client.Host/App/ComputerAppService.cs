@@ -13,12 +13,12 @@ public class ComputerAppService : IComputerAppService
     }
     public Task ReStartListening()
     {
-        // subscriptions.Add(
-        //     bus.Subscribe<AppConnectionRequest>(Events.GetConnection, OnConnectionRequest)
-        // );
-        // subscriptions.Add(
-        //     bus.Subscribe<AppDisconnectRequest>(Events.CloseConnection, OnDisconnectRequest)
-        // );
+        subscriptions.Add(
+            bus.Subscribe<AppConnectionRequest>(Events.GetConnection, OnConnectionRequest)
+        );
+        subscriptions.Add(
+            bus.Subscribe<AppDisconnectRequest>(Events.CloseConnection, OnDisconnectRequest)
+        );
         return Task.CompletedTask;
     }
 

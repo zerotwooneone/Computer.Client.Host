@@ -1,5 +1,5 @@
 ﻿using RabbitMQ.Client;
-using IConnectionFactory = Computer.Bus.RabbitMq.Client.IConnectionFactory;
+using IConnectionFactory = Computer.Bus.RabbitMq.Contracts.IConnectionFactory;
 
 namespace Computer.Client.Host.ExternalBus;
 

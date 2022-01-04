@@ -1,5 +1,6 @@
 ﻿using Computer.Client.Domain;
 using System.Text.Json;
+using Computer.Client.Domain.Contracts.App;
 using Computer.Client.Host.Controllers;
 
 namespace Computer.Client.Host.App;
