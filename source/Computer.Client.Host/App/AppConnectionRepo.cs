@@ -9,13 +9,10 @@ public class AppConnectionRepo : IAppConnectionRepo
     public Task<AppConnectionDetails> GetOrCreate(string appId, string clientId, string instanceId)
     {
         var appConnection = new AppConnection(appId, clientId, instanceId);
-        if (_details.TryGetValue(appConnection, out AppConnectionDetails? existing))
-        {
-            return Task.FromResult(existing);
-        }
+        if (_details.TryGetValue(appConnection, out var existing)) return Task.FromResult(existing);
         //todo: call app, ask if instance id is ok
         var dx = new TaskCompletionSource<AppConnectionDetails>();
-        _details.AddOrUpdate(appConnection, 
+        _details.AddOrUpdate(appConnection,
             s =>
             {
                 var d = new AppConnectionDetails { InstanceId = instanceId };
@@ -37,14 +34,12 @@ public class AppConnectionRepo : IAppConnectionRepo
         var appConnection = new AppConnection(appId, clientId, instanceId);
         return Task.FromResult(_details.TryRemove(appConnection, out _));
     }
+
     public Task<IEnumerable<AppConnectionDetails>> DeleteAllByClientId(string clientId)
     {
         var d = _details.Where(kvp => kvp.Key.clientId == clientId);
-        foreach(var kvp in d)
-        {
-            _details.TryRemove(kvp.Key, out _);
-        }
-        return Task.FromResult(d.Select(kvp=>kvp.Value));
+        foreach (var kvp in d) _details.TryRemove(kvp.Key, out _);
+        return Task.FromResult(d.Select(kvp => kvp.Value));
     }
 
     internal record AppConnection(string appId, string clientId, string instanceId);

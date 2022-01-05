@@ -20,6 +20,7 @@ public class DummyAppService : IAppService
         this.listService = listService;
         this.jsonContext = jsonContext;
     }
+
     public async Task<string> JsonFunction(string appName, string methodName, string? param = null)
     {
         switch (appName)
@@ -36,21 +37,13 @@ public class DummyAppService : IAppService
         switch (methodName)
         {
             case "GetById":
-                if (string.IsNullOrWhiteSpace(json))
-                {
-                    throw new ArgumentException($"Missing param {nameof(json)}");
-                }
-                var param = JsonSerializer.Deserialize<ListGetByIdParam?>(json, jsonTypeInfo: jsonContext.ListGetByIdParam!);
-                if(param == null)
-                {
-                    throw new ArgumentException($"Invalid param {nameof(param)}");
-                }
+                if (string.IsNullOrWhiteSpace(json)) throw new ArgumentException($"Missing param {nameof(json)}");
+                var param = JsonSerializer.Deserialize<ListGetByIdParam?>(json, jsonContext.ListGetByIdParam!);
+                if (param == null) throw new ArgumentException($"Invalid param {nameof(param)}");
                 if (string.IsNullOrWhiteSpace(param.Id))
-                {
                     throw new ArgumentException($"Missing param {nameof(param.Id)}");
-                }
                 var list = await listService.GetById(param.Id, param.HaveVersion);
-                var result = JsonSerializer.Serialize(list, jsonTypeInfo: jsonContext.ListModel);
+                var result = JsonSerializer.Serialize(list, jsonContext.ListModel);
                 return result;
             default:
                 throw new ArgumentException($"Unknown Method Name {methodName}");

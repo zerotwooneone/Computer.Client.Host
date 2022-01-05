@@ -5,25 +5,28 @@ namespace Computer.Client.Domain.ToDoList;
 
 public class ListService : IListService
 {
-    private ListModel dummy = new ListModel
+    private ListModel dummy = new()
     {
         Id = "some backend id",
         Items = new ItemModel[]
         {
-                new ItemModel{
-                    Text = "some backend text",
-                },
-                new ItemModel{
-                    Url = "https://www.google.com",
-                },
-                new ItemModel{
-                    Checked = true,
-                    ImageUrl = "https://thumbs.gfycat.com/CalmCooperativeKudu-size_restricted.gif",
-                },
+            new()
+            {
+                Text = "some backend text"
+            },
+            new()
+            {
+                Url = "https://www.google.com"
+            },
+            new()
+            {
+                Checked = true,
+                ImageUrl = "https://thumbs.gfycat.com/CalmCooperativeKudu-size_restricted.gif"
+            }
         }
     };
 
-    private static readonly Lazy<Thread> updateThread = new Lazy<Thread>(() =>
+    private static readonly Lazy<Thread> updateThread = new(() =>
     {
         var thread = new Thread(() =>
         {
@@ -34,16 +37,14 @@ public class ListService : IListService
                 {
                     ListId = "update thread list id",
                     NewVersion = DateTime.Now.Ticks,
-                    OldVersion = DateTime.Now.Ticks,
+                    OldVersion = DateTime.Now.Ticks
                 });
             }
         });
         return thread;
     });
-    private static Action<ListChanged> _callback = e =>
-    {
-        Console.WriteLine($"{nameof(_callback)} was not set up");
-    };
+
+    private static Action<ListChanged> _callback = e => { Console.WriteLine($"{nameof(_callback)} was not set up"); };
 
     public Task AddItems(IEnumerable<ItemModel> items)
     {
@@ -71,10 +72,7 @@ public class ListService : IListService
     {
         public void Dispose()
         {
-            _callback = e =>
-            {
-                Console.WriteLine($"{nameof(_callback)} was disposed");
-            };
+            _callback = e => { Console.WriteLine($"{nameof(_callback)} was disposed"); };
         }
     }
 }

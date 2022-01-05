@@ -10,12 +10,10 @@ public class MapperFactory : IMapperFactory
     {
         _domainMapRegistrationService = domainMapRegistrationService;
     }
+
     public IMapper? GetMapper(Type mapperType, Type dto, Type domain)
     {
-        if (!_domainMapRegistrationService.TypeToInstance.TryGetValue(mapperType, out var mapper))
-        {
-            return null;
-        }
+        if (!_domainMapRegistrationService.TypeToInstance.TryGetValue(mapperType, out var mapper)) return null;
 
         return mapper;
     }

@@ -1,22 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
-  <PropertyGroup>
-    <TargetFramework>net6.0</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-  </PropertyGroup>
+    <PropertyGroup>
+        <TargetFramework>net6.0</TargetFramework>
+        <ImplicitUsings>enable</ImplicitUsings>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="computer.bus.domain.contracts" Version="0.0.2" />
-    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
-  </ItemGroup>
+    <ItemGroup>
+        <PackageReference Include="computer.bus.domain.contracts" Version="0.0.2"/>
+        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <ProjectReference Include="..\Computer.Client.Domain.Contracts\Computer.Client.Domain.Contracts.csproj" />
-  </ItemGroup>
+    <ItemGroup>
+        <ProjectReference Include="..\Computer.Client.Domain.Contracts\Computer.Client.Domain.Contracts.csproj"/>
+    </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Model" />
-  </ItemGroup>
+    <ItemGroup>
+        <Folder Include="Model"/>
+    </ItemGroup>
 
 </Project>

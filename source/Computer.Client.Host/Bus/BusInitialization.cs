@@ -12,10 +12,11 @@ public class BusInitialization : IHostedService
         IComputerAppService computerAppService,
         ExternalRouter externalRouter)
     {
-        this._hubRouter = hubRouter;
+        _hubRouter = hubRouter;
         this.computerAppService = computerAppService;
         _externalRouter = externalRouter;
     }
+
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         _hubRouter.ReStartListening();

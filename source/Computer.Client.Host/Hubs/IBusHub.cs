@@ -1,7 +1,6 @@
-﻿namespace Computer.Client.Host.Hubs
+﻿namespace Computer.Client.Host.Hubs;
+
+public interface IBusHub
 {
-    public interface IBusHub
-    {
-        Task EventToFrontEnd(EventForFrontEnd @event);
-    }
+    Task EventToFrontEnd(EventForFrontEnd @event);
 }

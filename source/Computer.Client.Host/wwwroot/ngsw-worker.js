@@ -19,24 +19,29 @@
             this.original = original;
             this.cacheNamePrefix = cacheNamePrefix;
         }
+
         delete(cacheName) {
             return this.original.delete(`${this.cacheNamePrefix}:${cacheName}`);
         }
+
         has(cacheName) {
             return this.original.has(`${this.cacheNamePrefix}:${cacheName}`);
         }
+
         async keys() {
             const prefix = `${this.cacheNamePrefix}:`;
             const allCacheNames = await this.original.keys();
             const ownCacheNames = allCacheNames.filter(name => name.startsWith(prefix));
             return ownCacheNames.map(name => name.slice(prefix.length));
         }
+
         match(request, options) {
             return this.original.match(request, options);
         }
+
         async open(cacheName) {
             const cache = await this.original.open(`${this.cacheNamePrefix}:${cacheName}`);
-            return Object.assign(cache, { name: cacheName });
+            return Object.assign(cache, {name: cacheName});
         }
     }
 
@@ -64,36 +69,42 @@
             // different scopes on the same domain.
             this.caches = new NamedCacheStorage(caches, `ngsw:${parsedScopeUrl.path}`);
         }
+
         /**
          * Wrapper around the `Request` constructor.
          */
         newRequest(input, init) {
             return new Request(input, init);
         }
+
         /**
          * Wrapper around the `Response` constructor.
          */
         newResponse(body, init) {
             return new Response(body, init);
         }
+
         /**
          * Wrapper around the `Headers` constructor.
          */
         newHeaders(headers) {
             return new Headers(headers);
         }
+
         /**
          * Test if a given object is an instance of `Client`.
          */
         isClient(source) {
             return (source instanceof Client);
         }
+
         /**
          * Read the current UNIX time in milliseconds.
          */
         get time() {
             return Date.now();
         }
+
         /**
          * Get a normalized representation of a URL such as those found in the ServiceWorker's `ngsw.json`
          * configuration.
@@ -111,6 +122,7 @@
             const parsed = this.parseUrl(url, this.scopeUrl);
             return (parsed.origin === this.origin ? parsed.path : url);
         }
+
         /**
          * Parse a URL into its different parts, such as `origin`, `path` and `search`.
          */
@@ -118,8 +130,9 @@
             // Workaround a Safari bug, see
             // https://github.com/angular/angular/issues/31061#issuecomment-503637978
             const parsed = !relativeTo ? new URL(url) : new URL(url, relativeTo);
-            return { origin: parsed.origin, path: parsed.pathname, search: parsed.search };
+            return {origin: parsed.origin, path: parsed.pathname, search: parsed.search};
         }
+
         /**
          * Wait for a given amount of time before completing a Promise.
          */
@@ -164,12 +177,14 @@
             this.cacheNamePrefix = 'db';
             this.tables = new Map();
         }
+
         'delete'(name) {
             if (this.tables.has(name)) {
                 this.tables.delete(name);
             }
             return this.adapter.caches.delete(`${this.cacheNamePrefix}:${name}`);
         }
+
         async list() {
             const prefix = `${this.cacheNamePrefix}:`;
             const allCacheNames = await this.adapter.caches.keys();
@@ -178,6 +193,7 @@
             // (for example, for opening/deleting a table).
             return dbCacheNames.map(name => name.slice(prefix.length));
         }
+
         async open(name, cacheQueryOptions) {
             if (!this.tables.has(name)) {
                 const cache = await this.adapter.caches.open(`${this.cacheNamePrefix}:${name}`);
@@ -187,6 +203,7 @@
             return this.tables.get(name);
         }
     }
+
     /**
      * A `Table` backed by a `Cache`.
      */
@@ -198,15 +215,19 @@
             this.cacheQueryOptions = cacheQueryOptions;
             this.cacheName = this.cache.name;
         }
+
         request(key) {
             return this.adapter.newRequest('/' + key);
         }
+
         'delete'(key) {
             return this.cache.delete(this.request(key), this.cacheQueryOptions);
         }
+
         keys() {
             return this.cache.keys().then(requests => requests.map(req => req.url.substr(1)));
         }
+
         read(key) {
             return this.cache.match(this.request(key), this.cacheQueryOptions).then(res => {
                 if (res === undefined) {
@@ -215,6 +236,7 @@
                 return res.json();
             });
         }
+
         write(key, value) {
             return this.cache.put(this.request(key), this.adapter.newResponse(JSON.stringify(value)));
         }
@@ -247,14 +269,15 @@
             this.isCritical = true;
         }
     }
+
     function errorToString(error) {
         if (error instanceof Error) {
             return `${error.message}\n${error.stack}`;
-        }
-        else {
+        } else {
             return `${error}`;
         }
     }
+
     class SwUnrecoverableStateError extends SwCriticalError {
         constructor() {
             super(...arguments);
@@ -284,10 +307,12 @@
         const words32 = stringToWords32(utf8, Endian.Big);
         return _sha1(words32, utf8.length * 8);
     }
+
     function sha1Binary(buffer) {
         const words32 = arrayBufferToWords32(buffer, Endian.Big);
         return _sha1(words32, buffer.byteLength * 8);
     }
+
     function _sha1(words32, len) {
         const w = [];
         let [a, b, c, d, e] = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476, 0xc3d2e1f0];
@@ -298,8 +323,7 @@
             for (let j = 0; j < 80; j++) {
                 if (j < 16) {
                     w[j] = words32[i + j];
-                }
-                else {
+                } else {
                     w[j] = rol32(w[j - 3] ^ w[j - 8] ^ w[j - 14] ^ w[j - 16], 1);
                 }
                 const [f, k] = fk(j, b, c, d);
@@ -310,23 +334,28 @@
         }
         return byteStringToHexString(words32ToByteString([a, b, c, d, e]));
     }
+
     function add32(a, b) {
         return add32to64(a, b)[1];
     }
+
     function add32to64(a, b) {
         const low = (a & 0xffff) + (b & 0xffff);
         const high = (a >>> 16) + (b >>> 16) + (low >>> 16);
         return [high >>> 16, (high << 16) | (low & 0xffff)];
     }
+
     // Rotate a 32b number left `count` position
     function rol32(a, count) {
         return (a << count) | (a >>> (32 - count));
     }
+
     var Endian = /*@__PURE__*/ (function (Endian) {
         Endian[Endian["Little"] = 0] = "Little";
         Endian[Endian["Big"] = 1] = "Big";
         return Endian;
     })({});
+
     function fk(index, b, c, d) {
         if (index < 20) {
             return [(b & c) | (~b & d), 0x5a827999];
@@ -339,6 +368,7 @@
         }
         return [b ^ c ^ d, 0xca62c1d6];
     }
+
     function stringToWords32(str, endian) {
         const size = (str.length + 3) >>> 2;
         const words32 = [];
@@ -347,6 +377,7 @@
         }
         return words32;
     }
+
     function arrayBufferToWords32(buffer, endian) {
         const size = (buffer.byteLength + 3) >>> 2;
         const words32 = [];
@@ -356,31 +387,33 @@
         }
         return words32;
     }
+
     function byteAt(str, index) {
         if (typeof str === 'string') {
             return index >= str.length ? 0 : str.charCodeAt(index) & 0xff;
-        }
-        else {
+        } else {
             return index >= str.byteLength ? 0 : str[index] & 0xff;
         }
     }
+
     function wordAt(str, index, endian) {
         let word = 0;
         if (endian === Endian.Big) {
             for (let i = 0; i < 4; i++) {
                 word += byteAt(str, index + i) << (24 - 8 * i);
             }
-        }
-        else {
+        } else {
             for (let i = 0; i < 4; i++) {
                 word += byteAt(str, index + i) << 8 * i;
             }
         }
         return word;
     }
+
     function words32ToByteString(words32) {
         return words32.reduce((str, word) => str + word32ToByteString(word), '');
     }
+
     function word32ToByteString(word) {
         let str = '';
         for (let i = 0; i < 4; i++) {
@@ -388,6 +421,7 @@
         }
         return str;
     }
+
     function byteStringToHexString(str) {
         let hex = '';
         for (let i = 0; i < str.length; i++) {
@@ -443,6 +477,7 @@
             this.metadata =
                 this.db.open(`${cacheNamePrefix}:${config.name}:meta`, config.cacheQueryOptions);
         }
+
         async cacheStatus(url) {
             const cache = await this.cache;
             const meta = await this.metadata;
@@ -456,12 +491,12 @@
                 if (!data.used) {
                     return UpdateCacheStatus.CACHED_BUT_UNUSED;
                 }
-            }
-            catch (_) {
+            } catch (_) {
                 // Error on the side of safety and assume cached.
             }
             return UpdateCacheStatus.CACHED;
         }
+
         /**
          * Return a list of the names of all caches used by this group.
          */
@@ -472,6 +507,7 @@
             ]);
             return [cache.name, metadata.cacheName];
         }
+
         /**
          * Process a request for a given resource and return it, or return null if it's not available.
          */
@@ -495,8 +531,7 @@
                         // This resource has a hash, and thus is versioned by the manifest. It's safe to return
                         // the response.
                         return cachedResponse;
-                    }
-                    else {
+                    } else {
                         // This resource has no hash, and yet exists in the cache. Check how old this request is
                         // to make sure it's still usable.
                         if (await this.needToRevalidate(req, cachedResponse)) {
@@ -515,11 +550,11 @@
                 // If this is successful, the response needs to be cloned as it might be used to respond to
                 // multiple fetch operations at the same time.
                 return res.clone();
-            }
-            else {
+            } else {
                 return null;
             }
         }
+
         /**
          * Some resources are cached without a hash, meaning that their expiration is controlled
          * by HTTP caching headers. Check whether the given request/response pair is still valid
@@ -560,8 +595,7 @@
                         // Check the metadata table. If a timestamp is there, use it.
                         const metaTable = await this.metadata;
                         ts = (await metaTable.read(req.url)).ts;
-                    }
-                    catch {
+                    } catch {
                         // Otherwise, look for a Date header.
                         const date = res.headers.get('Date');
                         if (date === null) {
@@ -573,30 +607,27 @@
                     }
                     const age = this.adapter.time - ts;
                     return age < 0 || age > maxAge;
-                }
-                catch {
+                } catch {
                     // Assume stale.
                     return true;
                 }
-            }
-            else if (res.headers.has('Expires')) {
+            } else if (res.headers.has('Expires')) {
                 // Determine if the expiration time has passed.
                 const expiresStr = res.headers.get('Expires');
                 try {
                     // The request needs to be revalidated if the current time is later than the expiration
                     // time, if it parses correctly.
                     return this.adapter.time > Date.parse(expiresStr);
-                }
-                catch {
+                } catch {
                     // The expiration date failed to parse, so revalidate as a precaution.
                     return true;
                 }
-            }
-            else {
+            } else {
                 // No way to evaluate staleness, so assume the response is already stale.
                 return true;
             }
         }
+
         /**
          * Fetch the complete state of a cached resource, or return null if it's not found.
          */
@@ -614,13 +645,13 @@
             let metadata = undefined;
             try {
                 metadata = await metaTable.read(request.url);
-            }
-            catch {
+            } catch {
                 // Do nothing, not found. This shouldn't happen, but it can be handled.
             }
             // Return both the response and any available metadata.
-            return { response, metadata };
+            return {response, metadata};
         }
+
         /**
          * Lookup all resources currently stored in the cache which have no associated hash.
          */
@@ -633,6 +664,7 @@
                 // Exclude the URLs which have hashes.
                 .filter(url => !this.hashes.has(url));
         }
+
         /**
          * Fetch the given resource from the network, and cache it if able.
          */
@@ -670,26 +702,25 @@
                     // needed for future determination of whether this cached response is stale or not.
                     if (!this.hashes.has(this.adapter.normalizeUrl(req.url))) {
                         // Metadata is tracked for requests that are unhashed.
-                        const meta = { ts: this.adapter.time, used };
+                        const meta = {ts: this.adapter.time, used};
                         const metaTable = await this.metadata;
                         await metaTable.write(req.url, meta);
                     }
                     return res;
-                }
-                catch (err) {
+                } catch (err) {
                     // Among other cases, this can happen when the user clears all data through the DevTools,
                     // but the SW is still running and serving another tab. In that case, trying to write to the
                     // caches throws an `Entry was not found` error.
                     // If this happens the SW can no longer work correctly. This situation is unrecoverable.
                     throw new SwCriticalError(`Failed to update the caches for request to '${req.url}' (fetchAndCacheOnce): ${errorToString(err)}`);
                 }
-            }
-            finally {
+            } finally {
                 // Finally, it can be removed from `inFlightRequests`. This might result in a double-remove
                 // if some other chain was already making this request too, but that won't hurt anything.
                 this.inFlightRequests.delete(req.url);
             }
         }
+
         async fetchFromNetwork(req, redirectLimit = 3) {
             // Make a cache-busted request for the resource.
             const res = await this.cacheBustedFetchFromNetwork(req);
@@ -704,6 +735,7 @@
             }
             return res;
         }
+
         /**
          * Load a particular asset from the network, accounting for hash validation.
          */
@@ -768,12 +800,12 @@
                 }
                 // Return the response (successful or unsuccessful).
                 return response;
-            }
-            else {
+            } else {
                 // This URL doesn't exist in our hash database, so it must be requested directly.
                 return this.safeFetch(req);
             }
         }
+
         /**
          * Possibly update a resource, if it's expired and needs to be updated. A no-op otherwise.
          */
@@ -796,17 +828,18 @@
             // No up-to-date version of this resource could be found.
             return false;
         }
+
         /**
          * Construct a cache-busting URL for a given URL.
          */
         cacheBust(url) {
             return url + (url.indexOf('?') === -1 ? '?' : '&') + 'ngsw-cache-bust=' + Math.random();
         }
+
         async safeFetch(req) {
             try {
                 return await this.scope.fetch(req);
-            }
-            catch {
+            } catch {
                 return this.adapter.newResponse('', {
                     status: 504,
                     statusText: 'Gateway Timeout',
@@ -814,6 +847,7 @@
             }
         }
     }
+
     /**
      * An `AssetGroup` that prefetches all of its resources during initialization.
      */
@@ -854,28 +888,29 @@
                     .filter(url => this.urls.indexOf(url) !== -1 || this.patterns.some(pattern => pattern.test(url)))
                     // Finally, process each resource in turn.
                     .reduce(async (previous, url) => {
-                    await previous;
-                    const req = this.adapter.newRequest(url);
-                    // It's possible that the resource in question is already cached. If so,
-                    // continue to the next one.
-                    const alreadyCached = (await cache.match(req, this.config.cacheQueryOptions) !== undefined);
-                    if (alreadyCached) {
-                        return;
-                    }
-                    // Get the most recent old version of the resource.
-                    const res = await updateFrom.lookupResourceWithoutHash(url);
-                    if (res === null || res.metadata === undefined) {
-                        // Unexpected, but not harmful.
-                        return;
-                    }
-                    // Write it into the cache. It may already be expired, but it can still serve
-                    // traffic until it's updated (stale-while-revalidate approach).
-                    await cache.put(req, res.response);
-                    await metaTable.write(req.url, { ...res.metadata, used: false });
-                }, Promise.resolve());
+                        await previous;
+                        const req = this.adapter.newRequest(url);
+                        // It's possible that the resource in question is already cached. If so,
+                        // continue to the next one.
+                        const alreadyCached = (await cache.match(req, this.config.cacheQueryOptions) !== undefined);
+                        if (alreadyCached) {
+                            return;
+                        }
+                        // Get the most recent old version of the resource.
+                        const res = await updateFrom.lookupResourceWithoutHash(url);
+                        if (res === null || res.metadata === undefined) {
+                            // Unexpected, but not harmful.
+                            return;
+                        }
+                        // Write it into the cache. It may already be expired, but it can still serve
+                        // traffic until it's updated (stale-while-revalidate approach).
+                        await cache.put(req, res.response);
+                        await metaTable.write(req.url, {...res.metadata, used: false});
+                    }, Promise.resolve());
             }
         }
     }
+
     class LazyAssetGroup extends AssetGroup {
         async initializeFully(updateFrom) {
             // No action necessary if no update source is available - resources managed in this group
@@ -940,12 +975,14 @@
             }
             this.state = state;
         }
+
         /**
          * The current count of URLs in the list.
          */
         get size() {
             return this.state.count;
         }
+
         /**
          * Remove the tail.
          */
@@ -959,6 +996,7 @@
             // This URL has been successfully evicted.
             return url;
         }
+
         remove(url) {
             const node = this.state.map[url];
             if (node === undefined) {
@@ -995,8 +1033,7 @@
             if (node.next !== null) {
                 // There is a next node, fix its back pointer to skip this node.
                 this.state.map[node.next].previous = node.previous;
-            }
-            else {
+            } else {
                 // There is no next node - the accessed node must be the tail. Move the tail pointer.
                 this.state.tail = node.previous;
             }
@@ -1007,6 +1044,7 @@
             this.state.count--;
             return true;
         }
+
         accessed(url) {
             // When a URL is accessed, its node needs to be moved to the head of the chain.
             // This is accomplished in two steps:
@@ -1022,7 +1060,7 @@
                 return;
             }
             // Look up the node in the map, and construct a new entry if it's
-            const node = this.state.map[url] || { url, next: null, previous: null };
+            const node = this.state.map[url] || {url, next: null, previous: null};
             // Step 1: remove the node from its position within the chain, if it is in the chain.
             if (this.state.map[url] !== undefined) {
                 this.remove(url);
@@ -1048,6 +1086,7 @@
             this.state.count++;
         }
     }
+
     /**
      * A group of cached resources determined by a set of URL patterns which follow a LRU policy
      * for caching.
@@ -1068,6 +1107,7 @@
             this.lruTable = this.db.open(`${cacheNamePrefix}:${config.name}:lru`, config.cacheQueryOptions);
             this.ageTable = this.db.open(`${cacheNamePrefix}:${config.name}:age`, config.cacheQueryOptions);
         }
+
         /**
          * Lazily initialize/load the LRU chain.
          */
@@ -1076,13 +1116,13 @@
                 const table = await this.lruTable;
                 try {
                     this._lru = new LruList(await table.read('lru'));
-                }
-                catch {
+                } catch {
                     this._lru = new LruList();
                 }
             }
             return this._lru;
         }
+
         /**
          * Sync the LRU chain to non-volatile storage.
          */
@@ -1093,8 +1133,7 @@
             const table = await this.lruTable;
             try {
                 return table.write('lru', this._lru.state);
-            }
-            catch (err) {
+            } catch (err) {
                 // Writing lru cache table failed. This could be a result of a full storage.
                 // Continue serving clients as usual.
                 this.debugHandler.log(err, `DataGroup(${this.config.name}@${this.config.version}).syncLru()`);
@@ -1102,6 +1141,7 @@
                 // [navigator.storage](https://developer.mozilla.org/en-US/docs/Web/API/NavigatorStorage/storage).
             }
         }
+
         /**
          * Process a fetch event and return a `Response` if the resource is covered by this group,
          * or `null` otherwise.
@@ -1143,6 +1183,7 @@
                     return this.safeFetch(req);
             }
         }
+
         async handleFetchWithPerformance(req, event, lru) {
             let res = null;
             // Check the cache first. If the resource exists there (and is not expired), the cached
@@ -1165,16 +1206,16 @@
             // Since fetch() will always return a response, undefined indicates a timeout.
             if (res === undefined) {
                 // The request timed out. Return a Gateway Timeout error.
-                res = this.adapter.newResponse(null, { status: 504, statusText: 'Gateway Timeout' });
+                res = this.adapter.newResponse(null, {status: 504, statusText: 'Gateway Timeout'});
                 // Cache the network response eventually.
                 event.waitUntil(this.safeCacheResponse(req, networkFetch, lru));
-            }
-            else {
+            } else {
                 // The request completed in time, so cache it inline with the response flow.
                 await this.safeCacheResponse(req, res, lru);
             }
             return res;
         }
+
         async handleFetchWithFreshness(req, event, lru) {
             // Start with a network fetch.
             const [timeoutFetch, networkFetch] = this.networkFetchWithTimeout(req);
@@ -1182,8 +1223,7 @@
             // If that fetch errors, treat it as a timed out request.
             try {
                 res = await timeoutFetch;
-            }
-            catch {
+            } catch {
                 res = undefined;
             }
             // If the network fetch times out or errors, fall back on the cache.
@@ -1193,8 +1233,7 @@
                 // behavior of freshness.
                 const fromCache = await this.loadFromCache(req, lru);
                 res = (fromCache !== null) ? fromCache.res : null;
-            }
-            else {
+            } else {
                 await this.safeCacheResponse(req, res, lru, true);
             }
             // Either the network fetch didn't time out, or the cache yielded a usable response.
@@ -1205,6 +1244,7 @@
             // No response in the cache. No choice but to fall back on the full network fetch.
             return networkFetch;
         }
+
         networkFetchWithTimeout(req) {
             // If there is a timeout configured, race a timeout Promise with the network fetch.
             // Otherwise, just fetch from the network directly.
@@ -1213,8 +1253,7 @@
                 const safeNetworkFetch = (async () => {
                     try {
                         return await networkFetch;
-                    }
-                    catch {
+                    } catch {
                         return this.adapter.newResponse(null, {
                             status: 504,
                             statusText: 'Gateway Timeout',
@@ -1224,8 +1263,7 @@
                 const networkFetchUndefinedError = (async () => {
                     try {
                         return await networkFetch;
-                    }
-                    catch {
+                    } catch {
                         return undefined;
                     }
                 })();
@@ -1234,32 +1272,31 @@
                 // Race that with the network fetch. This will either be a Response, or `undefined`
                 // in the event that the request errored or timed out.
                 return [Promise.race([networkFetchUndefinedError, timeout]), safeNetworkFetch];
-            }
-            else {
+            } else {
                 const networkFetch = this.safeFetch(req);
                 // Do a plain fetch.
                 return [networkFetch, networkFetch];
             }
         }
+
         async safeCacheResponse(req, resOrPromise, lru, okToCacheOpaque) {
             try {
                 const res = await resOrPromise;
                 try {
                     await this.cacheResponse(req, res, lru, okToCacheOpaque);
-                }
-                catch (err) {
+                } catch (err) {
                     // Saving the API response failed. This could be a result of a full storage.
                     // Since this data is cached lazily and temporarily, continue serving clients as usual.
                     this.debugHandler.log(err, `DataGroup(${this.config.name}@${this.config.version}).safeCacheResponse(${req.url}, status: ${res.status})`);
                     // TODO: Better detect/handle full storage; e.g. using
                     // [navigator.storage](https://developer.mozilla.org/en-US/docs/Web/API/NavigatorStorage/storage).
                 }
-            }
-            catch {
+            } catch {
                 // Request failed
                 // TODO: Handle this error somehow?
             }
         }
+
         async loadFromCache(req, lru) {
             // Look for a response in the cache. If one exists, return it.
             const cache = await this.cache;
@@ -1274,11 +1311,10 @@
                         // Successful match from the cache. Use the response, after marking it as having
                         // been accessed.
                         lru.accessed(req.url);
-                        return { res, age };
+                        return {res, age};
                     }
                     // Otherwise, or if there was an error, assume the response is expired, and evict it.
-                }
-                catch {
+                } catch {
                     // Some error getting the age for the response. Assume it's expired.
                 }
                 lru.remove(req.url);
@@ -1288,6 +1324,7 @@
             }
             return null;
         }
+
         /**
          * Operation for caching the response from the server. This has to happen all
          * at once, so that the cache and LRU tracking remain in sync. If the network request
@@ -1318,10 +1355,11 @@
             await (await this.cache).put(req, res.clone());
             // Store the age of the cache.
             const ageTable = await this.ageTable;
-            await ageTable.write(req.url, { age: this.adapter.time });
+            await ageTable.write(req.url, {age: this.adapter.time});
             // Sync the LRU chain to non-volatile storage.
             await this.syncLru();
         }
+
         /**
          * Delete all of the saved state which this group uses to track resources.
          */
@@ -1333,6 +1371,7 @@
                 this.lruTable.then(table => this.db.delete(table.name)),
             ]);
         }
+
         /**
          * Return a list of the names of all caches used by this group.
          */
@@ -1344,6 +1383,7 @@
             ]);
             return [cache.name, ageTable.cacheName, lruTable.cacheName];
         }
+
         /**
          * Clear the state of the cache for a particular resource.
          *
@@ -1354,16 +1394,16 @@
         async clearCacheForUrl(url) {
             const [cache, ageTable] = await Promise.all([this.cache, this.ageTable]);
             await Promise.all([
-                cache.delete(this.adapter.newRequest(url, { method: 'GET' }), this.config.cacheQueryOptions),
-                cache.delete(this.adapter.newRequest(url, { method: 'HEAD' }), this.config.cacheQueryOptions),
+                cache.delete(this.adapter.newRequest(url, {method: 'GET'}), this.config.cacheQueryOptions),
+                cache.delete(this.adapter.newRequest(url, {method: 'HEAD'}), this.config.cacheQueryOptions),
                 ageTable.delete(url),
             ]);
         }
+
         async safeFetch(req) {
             try {
                 return this.scope.fetch(req);
-            }
-            catch {
+            } catch {
                 return this.adapter.newResponse(null, {
                     status: 504,
                     statusText: 'Gateway Timeout',
@@ -1380,10 +1420,11 @@
      * found in the LICENSE file at https://angular.io/license
      */
     const BACKWARDS_COMPATIBILITY_NAVIGATION_URLS = [
-        { positive: true, regex: '^/.*$' },
-        { positive: false, regex: '^/.*\\.[^/]*$' },
-        { positive: false, regex: '^/.*__' },
+        {positive: true, regex: '^/.*$'},
+        {positive: false, regex: '^/.*\\.[^/]*$'},
+        {positive: false, regex: '^/.*__'},
     ];
+
     /**
      * A specific version of the application, identified by a unique manifest
      * as determined by its hash.
@@ -1443,9 +1484,11 @@
                 exclude: excludeUrls.map(spec => new RegExp(spec.regex)),
             };
         }
+
         get okay() {
             return this._okay;
         }
+
         /**
          * Fully initialize this version of the application. If this Promise resolves successfully, all
          * required
@@ -1464,12 +1507,12 @@
                     // Initialize this group.
                     return group.initializeFully(updateFrom);
                 }, Promise.resolve());
-            }
-            catch (err) {
+            } catch (err) {
                 this._okay = false;
                 throw err;
             }
         }
+
         async handleFetch(req, event) {
             // Check the request against each `AssetGroup` in sequence. If an `AssetGroup` can't handle the
             // request,
@@ -1515,8 +1558,7 @@
                     // the network and fallback to default `handleFetch` behavior in case of failure.
                     try {
                         return await this.scope.fetch(req);
-                    }
-                    catch {
+                    } catch {
                         // Navigation request failed - application is likely offline.
                         // Proceed forward to the default `handleFetch` behavior, where
                         // `indexUrl` will be requested and it should be available in the cache.
@@ -1528,6 +1570,7 @@
             }
             return null;
         }
+
         /**
          * Determine whether the request is a navigation request.
          * Takes into account: Request mode, `Accept` header, `navigationUrls` patterns.
@@ -1545,6 +1588,7 @@
             return this.navigationUrls.include.some(regex => regex.test(urlWithoutQueryOrHash)) &&
                 !this.navigationUrls.exclude.some(regex => regex.test(urlWithoutQueryOrHash));
         }
+
         /**
          * Check this version for a given resource with a particular hash.
          */
@@ -1562,6 +1606,7 @@
             const cacheState = await this.lookupResourceWithoutHash(url);
             return cacheState && cacheState.response;
         }
+
         /**
          * Check this version for a given resource regardless of its hash.
          */
@@ -1578,12 +1623,14 @@
                 return group.fetchFromCacheOnly(url);
             }, Promise.resolve(null));
         }
+
         /**
          * List all unhashed resources from all asset groups.
          */
         previouslyCachedResources() {
             return this.assetGroups.reduce(async (resources, group) => (await resources).concat(await group.unhashedResources()), Promise.resolve([]));
         }
+
         async recentCacheStatus(url) {
             return this.assetGroups.reduce(async (current, group) => {
                 const status = await current;
@@ -1597,6 +1644,7 @@
                 return groupStatus;
             }, Promise.resolve(UpdateCacheStatus.NOT_CACHED));
         }
+
         /**
          * Return a list of the names of all caches used by this version.
          */
@@ -1607,12 +1655,14 @@
             ]);
             return [].concat(...allGroupCacheNames);
         }
+
         /**
          * Get the opaque application data which was provided with the manifest.
          */
         get appData() {
             return this.manifest.appData || null;
         }
+
         /**
          * Check whether a request accepts `text/html` (based on the `Accept` header).
          */
@@ -1635,6 +1685,7 @@
      */
     const SW_VERSION = '13.0.1';
     const DEBUG_LOG_BUFFER_SIZE = 100;
+
     class DebugHandler {
         constructor(driver, adapter) {
             this.driver = driver;
@@ -1647,6 +1698,7 @@
             this.debugLogA = [];
             this.debugLogB = [];
         }
+
         async handleFetch(req) {
             const [state, versions, idle] = await Promise.all([
                 this.driver.debugState(),
@@ -1678,8 +1730,9 @@ ${this.formatDebugLog(this.debugLogA)}
 
 ${msgVersions}
 
-${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }) });
+${msgIdle}`, {headers: this.adapter.newHeaders({'Content-Type': 'text/plain'})});
         }
+
         since(time) {
             if (time === null) {
                 return 'never';
@@ -1697,6 +1750,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                 (minutes > 0 ? `${minutes}m` : '') + (seconds > 0 ? `${seconds}s` : '') +
                 (millis > 0 ? `${millis}u` : '');
         }
+
         log(value, context = '') {
             // Rotate the buffers if debugLogA has grown too large.
             if (this.debugLogA.length === DEBUG_LOG_BUFFER_SIZE) {
@@ -1708,11 +1762,13 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                 value = this.errorToString(value);
             }
             // Log the message.
-            this.debugLogA.push({ value, time: this.adapter.time, context });
+            this.debugLogA.push({value, time: this.adapter.time, context});
         }
+
         errorToString(err) {
             return `${err.name}(${err.message}, ${err.stack})`;
         }
+
         formatDebugLog(log) {
             return log.map(entry => `[${this.since(entry.time)}] ${entry.value} ${entry.context}`)
                 .join('\n');
@@ -1740,6 +1796,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
             this.lastRun = null;
             this.oldestScheduledAt = null;
         }
+
         async trigger() {
             this.lastTrigger = this.adapter.time;
             if (this.queue.length === 0) {
@@ -1763,6 +1820,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
             this.scheduled = null;
             await this.execute();
         }
+
         async execute() {
             this.lastRun = this.adapter.time;
             while (this.queue.length > 0) {
@@ -1772,8 +1830,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                     await previous;
                     try {
                         await task.run();
-                    }
-                    catch (err) {
+                    } catch (err) {
                         this.debug.log(err, `while running idle task ${task.desc}`);
                     }
                 }, Promise.resolve());
@@ -1785,8 +1842,9 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
             this.empty = Promise.resolve();
             this.oldestScheduledAt = null;
         }
+
         schedule(desc, run) {
-            this.queue.push({ desc, run });
+            this.queue.push({desc, run});
             if (this.emptyResolve === null) {
                 this.empty = new Promise(resolve => {
                     this.emptyResolve = resolve;
@@ -1796,9 +1854,11 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                 this.oldestScheduledAt = this.adapter.time;
             }
         }
+
         get size() {
             return this.queue.length;
         }
+
         get taskDescriptions() {
             return this.queue.map(task => task.desc);
         }
@@ -1825,6 +1885,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
     function isMsgCheckForUpdates(msg) {
         return msg.action === 'CHECK_FOR_UPDATES';
     }
+
     function isMsgActivateUpdate(msg) {
         return msg.action === 'ACTIVATE_UPDATE';
     }
@@ -1855,6 +1916,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
         DriverReadyState[DriverReadyState["SAFE_MODE"] = 2] = "SAFE_MODE";
         return DriverReadyState;
     })({});
+
     class Driver {
         constructor(scope, adapter, db) {
             // Set up all the event handlers that the SW needs.
@@ -1922,8 +1984,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                     this.idle.schedule('activate: cleanup-old-sw-caches', async () => {
                         try {
                             await this.cleanupOldSwCaches();
-                        }
-                        catch (err) {
+                        } catch (err) {
                             // Nothing to do - cleanup failed. Just log it.
                             this.debugger.log(err, 'cleanupOldSwCaches @ activate: cleanup-old-sw-caches');
                         }
@@ -1940,7 +2001,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                 // same time the activation event is allowed to resolve and traffic starts
                 // being served.
                 if (this.scope.registration.active !== null) {
-                    this.scope.registration.active.postMessage({ action: 'INITIALIZE' });
+                    this.scope.registration.active.postMessage({action: 'INITIALIZE'});
                 }
             });
             // Handle the fetch, message, and push events.
@@ -1953,6 +2014,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
             // The IdleScheduler will execute idle tasks after a given delay.
             this.idle = new IdleScheduler(this.adapter, IDLE_DELAY, MAX_IDLE_DELAY, this.debugger);
         }
+
         /**
          * The handler for fetch events.
          *
@@ -2011,6 +2073,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
             // SW will still deliver a response.
             event.respondWith(this.handleFetch(event));
         }
+
         /**
          * The handler for message events.
          */
@@ -2040,6 +2103,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                 await this.handleMessage(data, event.source);
             })());
         }
+
         onPush(msg) {
             // Push notifications without data have no effect.
             if (!msg.data) {
@@ -2048,10 +2112,12 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
             // Handle the push and keep the SW alive until it's handled.
             msg.waitUntil(this.handlePush(msg.data.json()));
         }
+
         onClick(event) {
             // Handle the click event and keep the SW alive until it's handled.
             event.waitUntil(this.handleClick(event.notification, event.action));
         }
+
         async ensureInitialized(event) {
             // Since the SW may have just been started, it may or may not have been initialized already.
             // `this.initialized` will be `null` if initialization has not yet been attempted, or will be a
@@ -2064,29 +2130,28 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
             try {
                 this.initialized = this.initialize();
                 await this.initialized;
-            }
-            catch (error) {
+            } catch (error) {
                 // If initialization fails, the SW needs to enter a safe state, where it declines to respond
                 // to network requests.
                 this.state = DriverReadyState.SAFE_MODE;
                 this.stateMessage = `Initialization failed due to error: ${errorToString(error)}`;
                 throw error;
-            }
-            finally {
+            } finally {
                 // Regardless if initialization succeeded, background tasks still need to happen.
                 event.waitUntil(this.idle.trigger());
             }
         }
+
         async handleMessage(msg, from) {
             if (isMsgCheckForUpdates(msg)) {
                 const action = this.checkForUpdate();
                 await this.completeOperation(from, action, msg.nonce);
-            }
-            else if (isMsgActivateUpdate(msg)) {
+            } else if (isMsgActivateUpdate(msg)) {
                 const action = this.updateClient(from);
                 await this.completeOperation(from, action, msg.nonce);
             }
         }
+
         async handlePush(data) {
             await this.broadcast({
                 type: 'PUSH',
@@ -2101,6 +2166,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                 .forEach(name => options[name] = desc[name]);
             await this.scope.registration.showNotification(desc['title'], options);
         }
+
         async handleClick(notification, action) {
             notification.close();
             const options = {};
@@ -2119,8 +2185,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                     let matchingClient = await this.getLastFocusedMatchingClient(this.scope);
                     if (matchingClient) {
                         await matchingClient?.focus();
-                    }
-                    else {
+                    } else {
                         await this.scope.clients.openWindow(urlToOpen);
                     }
                     break;
@@ -2130,8 +2195,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                     if (matchingClient) {
                         matchingClient = await matchingClient.navigate(urlToOpen);
                         await matchingClient?.focus();
-                    }
-                    else {
+                    } else {
                         await this.scope.clients.openWindow(urlToOpen);
                     }
                     break;
@@ -2139,29 +2203,31 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
             }
             await this.broadcast({
                 type: 'NOTIFICATION_CLICK',
-                data: { action, notification: options },
+                data: {action, notification: options},
             });
         }
+
         async getLastFocusedMatchingClient(scope) {
-            const windowClients = await scope.clients.matchAll({ type: 'window' });
+            const windowClients = await scope.clients.matchAll({type: 'window'});
             // As per the spec windowClients are `sorted in the most recently focused order`
             return windowClients[0];
         }
+
         async completeOperation(client, promise, nonce) {
-            const response = { type: 'OPERATION_COMPLETED', nonce };
+            const response = {type: 'OPERATION_COMPLETED', nonce};
             try {
                 client.postMessage({
                     ...response,
                     result: await promise,
                 });
-            }
-            catch (e) {
+            } catch (e) {
                 client.postMessage({
                     ...response,
                     error: e.toString(),
                 });
             }
         }
+
         async updateClient(client) {
             // Figure out which version the client is on. If it's not on the latest,
             // it needs to be moved.
@@ -2191,12 +2257,12 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
             client.postMessage(notice);
             return true;
         }
+
         async handleFetch(event) {
             try {
                 // Ensure the SW instance has been initialized.
                 await this.ensureInitialized(event);
-            }
-            catch {
+            } catch {
                 // Since the SW is already committed to responding to the currently active request,
                 // respond with a network fetch.
                 return this.safeFetch(event.request);
@@ -2219,8 +2285,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                         // Handle the request. First try the AppVersion. If that doesn't work, fall back on the
                         // network.
                         res = await appVersion.handleFetch(event.request, event);
-                    }
-                    catch (err) {
+                    } catch (err) {
                         if (err.isUnrecoverableState) {
                             await this.notifyClientsAboutUnrecoverableState(appVersion, err.message);
                         }
@@ -2241,8 +2306,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                 }
                 // The `AppVersion` returned a usable response, so return it.
                 return res;
-            }
-            finally {
+            } finally {
                 // Trigger the idle scheduling system. The Promise returned by `trigger()` will resolve after
                 // a specific amount of time has passed. If `trigger()` hasn't been called again by then (e.g.
                 // on a subsequent request), the idle task queue will be drained and the `Promise` won't
@@ -2250,6 +2314,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                 event.waitUntil(this.idle.trigger());
             }
         }
+
         /**
          * Attempt to quickly reach a state where it's safe to serve responses.
          */
@@ -2285,15 +2350,14 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                 this.idle.schedule('init post-load (update)', async () => {
                     await this.checkForUpdate();
                 });
-            }
-            catch (_) {
+            } catch (_) {
                 // Something went wrong. Try to start over by fetching a new manifest from the
                 // server and building up an empty initial state.
                 const manifest = await this.fetchLatestManifest();
                 const hash = hashManifest(manifest);
-                manifests = { [hash]: manifest };
+                manifests = {[hash]: manifest};
                 assignments = {};
-                latest = { latest: hash };
+                latest = {latest: hash};
                 // Save the initial state to the DB.
                 await Promise.all([
                     table.write('manifests', manifests),
@@ -2325,8 +2389,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                 const hash = assignments[clientId];
                 if (this.versions.has(hash)) {
                     this.clientVersionMap.set(clientId, hash);
-                }
-                else {
+                } else {
                     this.clientVersionMap.set(clientId, latest.latest);
                     this.debugger.log(`Unknown version ${hash} mapped for client ${clientId}, using latest instead`, `initialize: map assignments`);
                 }
@@ -2349,13 +2412,13 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                     // successful, then initialization either succeeded or was scheduled. If
                     // it fails, then full initialization was attempted and failed.
                     await this.scheduleInitialization(this.versions.get(hash));
-                }
-                catch (err) {
+                } catch (err) {
                     this.debugger.log(err, `initialize: schedule init of ${hash}`);
                     return false;
                 }
             }));
         }
+
         lookupVersionByHash(hash, debugName = 'lookupVersionByHash') {
             // The version should exist, but check just in case.
             if (!this.versions.has(hash)) {
@@ -2363,6 +2426,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
             }
             return this.versions.get(hash);
         }
+
         /**
          * Decide which version of the manifest to use for the event.
          */
@@ -2396,8 +2460,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                     }
                     // TODO: make sure the version is valid.
                     return appVersion;
-                }
-                else {
+                } else {
                     // This is the first time this client ID has been seen. Whether the SW is in a
                     // state to handle new clients depends on the current readiness state, so check
                     // that first.
@@ -2432,8 +2495,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                     // Return the latest `AppVersion`.
                     return this.lookupVersionByHash(this.latestHash, 'assignVersion');
                 }
-            }
-            else {
+            } else {
                 // No client ID was associated with the request. This must be a navigation request
                 // for a new client. First check that the SW is accepting new clients.
                 if (this.state !== DriverReadyState.NORMAL) {
@@ -2449,14 +2511,14 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                 return this.lookupVersionByHash(this.latestHash, 'assignVersion');
             }
         }
+
         async fetchLatestManifest(ignoreOfflineError = false) {
             const res = await this.safeFetch(this.adapter.newRequest('ngsw.json?ngsw-cache-bust=' + Math.random()));
             if (!res.ok) {
                 if (res.status === 404) {
                     await this.deleteAllCaches();
                     await this.scope.registration.unregister();
-                }
-                else if ((res.status === 503 || res.status === 504) && ignoreOfflineError) {
+                } else if ((res.status === 503 || res.status === 504) && ignoreOfflineError) {
                     return null;
                 }
                 throw new Error(`Manifest fetch failed! (status: ${res.status})`);
@@ -2464,10 +2526,12 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
             this.lastUpdateCheck = this.adapter.time;
             return res.json();
         }
+
         async deleteAllCaches() {
             const cacheNames = await this.adapter.caches.keys();
             await Promise.all(cacheNames.map(name => this.adapter.caches.delete(name)));
         }
+
         /**
          * Schedule the SW's attempt to reach a fully prefetched state for the given AppVersion
          * when the SW is not busy and has connectivity. This returns a Promise which must be
@@ -2477,8 +2541,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
             const initialize = async () => {
                 try {
                     await appVersion.initializeFully();
-                }
-                catch (err) {
+                } catch (err) {
                     this.debugger.log(err, `initializeFully for ${appVersion.manifestHash}`);
                     await this.versionFailed(appVersion, err);
                 }
@@ -2489,6 +2552,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
             }
             this.idle.schedule(`initialization(${appVersion.manifestHash})`, initialize);
         }
+
         async versionFailed(appVersion, err) {
             // This particular AppVersion is broken. First, find the manifest hash.
             const broken = Array.from(this.versions.entries()).find(([hash, version]) => version === appVersion);
@@ -2514,6 +2578,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                 this.stateMessage = `Degraded due to: ${errorToString(err)}`;
             }
         }
+
         async setupUpdate(manifest, hash) {
             try {
                 const newVersion = new AppVersion(this.scope, this.adapter, this.db, this.idle, this.debugger, manifest, hash);
@@ -2538,12 +2603,12 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                 }
                 await this.sync();
                 await this.notifyClientsAboutVersionReady(manifest, hash);
-            }
-            catch (e) {
+            } catch (e) {
                 await this.notifyClientsAboutVersionInstallationFailed(manifest, hash, e);
                 throw e;
             }
         }
+
         async checkForUpdate() {
             let hash = '(unknown)';
             try {
@@ -2562,14 +2627,14 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                 await this.notifyClientsAboutVersionDetected(manifest, hash);
                 await this.setupUpdate(manifest, hash);
                 return true;
-            }
-            catch (err) {
+            } catch (err) {
                 this.debugger.log(err, `Error occurred while updating to manifest ${hash}`);
                 this.state = DriverReadyState.EXISTING_CLIENTS_ONLY;
                 this.stateMessage = `Degraded due to failed initialization: ${errorToString(err)}`;
                 return false;
             }
         }
+
         /**
          * Synchronize the existing state to the underlying database.
          */
@@ -2597,6 +2662,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                 table.write('latest', latest),
             ]);
         }
+
         async cleanupCaches() {
             try {
                 // Query for all currently active clients, and list the client IDs. This may skip some clients
@@ -2623,13 +2689,13 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                 const usedCaches = new Set(await this.getCacheNames());
                 const cachesToDelete = allCaches.filter(name => !usedCaches.has(name));
                 await Promise.all(cachesToDelete.map(name => this.adapter.caches.delete(name)));
-            }
-            catch (err) {
+            } catch (err) {
                 // Oh well? Not much that can be done here. These caches will be removed on the next attempt
                 // or when the SW revs its format version, which happens from time to time.
                 this.debugger.log(err, 'cleanupCaches');
             }
         }
+
         /**
          * Delete caches that were used by older versions of `@angular/service-worker` to avoid running
          * into storage quota limitations imposed by browsers.
@@ -2644,6 +2710,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
             const oldSwCacheNames = cacheNames.filter(name => /^ngsw:(?!\/)/.test(name));
             await Promise.all(oldSwCacheNames.map(name => caches.delete(name)));
         }
+
         /**
          * Determine if a specific version of the given resource is cached anywhere within the SW,
          * and fetch it if so.
@@ -2659,35 +2726,40 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                 // future operation could change the response. If no response has been found yet, keep
                 // checking versions until one is or until all versions have been exhausted.
                 .reduce(async (prev, version) => {
-                // First, check the previous result. If a non-null result has been found already, just
-                // return it.
-                if (await prev !== null) {
-                    return prev;
-                }
-                // No result has been found yet. Try the next `AppVersion`.
-                return version.lookupResourceWithHash(url, hash);
-            }, Promise.resolve(null));
+                    // First, check the previous result. If a non-null result has been found already, just
+                    // return it.
+                    if (await prev !== null) {
+                        return prev;
+                    }
+                    // No result has been found yet. Try the next `AppVersion`.
+                    return version.lookupResourceWithHash(url, hash);
+                }, Promise.resolve(null));
         }
+
         async lookupResourceWithoutHash(url) {
             await this.initialized;
             const version = this.versions.get(this.latestHash);
             return version ? version.lookupResourceWithoutHash(url) : null;
         }
+
         async previouslyCachedResources() {
             await this.initialized;
             const version = this.versions.get(this.latestHash);
             return version ? version.previouslyCachedResources() : [];
         }
+
         async recentCacheStatus(url) {
             const version = this.versions.get(this.latestHash);
             return version ? version.recentCacheStatus(url) : UpdateCacheStatus.NOT_CACHED;
         }
+
         mergeHashWithAppData(manifest, hash) {
             return {
                 hash,
                 appData: manifest.appData,
             };
         }
+
         async notifyClientsAboutUnrecoverableState(appVersion, reason) {
             const broken = Array.from(this.versions.entries()).find(([hash, version]) => version === appVersion);
             if (broken === undefined) {
@@ -2701,10 +2773,11 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
             await Promise.all(affectedClients.map(async (clientId) => {
                 const client = await this.scope.clients.get(clientId);
                 if (client) {
-                    client.postMessage({ type: 'UNRECOVERABLE_STATE', reason });
+                    client.postMessage({type: 'UNRECOVERABLE_STATE', reason});
                 }
             }));
         }
+
         async notifyClientsAboutVersionInstallationFailed(manifest, hash, error) {
             await this.initialized;
             const clients = await this.scope.clients.matchAll();
@@ -2717,6 +2790,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                 });
             }));
         }
+
         async notifyClientsAboutVersionDetected(manifest, hash) {
             await this.initialized;
             const clients = await this.scope.clients.matchAll();
@@ -2728,9 +2802,10 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                     return;
                 }
                 // Send a notice.
-                client.postMessage({ type: 'VERSION_DETECTED', version: this.mergeHashWithAppData(manifest, hash) });
+                client.postMessage({type: 'VERSION_DETECTED', version: this.mergeHashWithAppData(manifest, hash)});
             }));
         }
+
         async notifyClientsAboutVersionReady(manifest, hash) {
             await this.initialized;
             const clients = await this.scope.clients.matchAll();
@@ -2755,12 +2830,14 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                 client.postMessage(notice);
             }));
         }
+
         async broadcast(msg) {
             const clients = await this.scope.clients.matchAll();
             clients.forEach(client => {
                 client.postMessage(msg);
             });
         }
+
         async debugState() {
             return {
                 state: DriverReadyState[this.state],
@@ -2769,6 +2846,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                 lastUpdateCheck: this.lastUpdateCheck,
             };
         }
+
         async debugVersions() {
             // Build list of versions.
             return Array.from(this.versions.keys()).map(hash => {
@@ -2784,6 +2862,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                 };
             });
         }
+
         async debugIdleState() {
             return {
                 queue: this.idle.taskDescriptions,
@@ -2791,11 +2870,11 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                 lastRun: this.idle.lastRun,
             };
         }
+
         async safeFetch(req) {
             try {
                 return await this.scope.fetch(req);
-            }
-            catch (err) {
+            } catch (err) {
                 this.debugger.log(err, `Driver.fetch(${req.url})`);
                 return this.adapter.newResponse(null, {
                     status: 504,
@@ -2803,6 +2882,7 @@ ${msgIdle}`, { headers: this.adapter.newHeaders({ 'Content-Type': 'text/plain' }
                 });
             }
         }
+
         async getCacheNames() {
             const controlTable = await this.controlTable;
             const appVersions = Array.from(this.versions.values());

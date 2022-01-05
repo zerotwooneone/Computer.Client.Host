@@ -19,18 +19,20 @@ public class HubRouter : IEventHandler, IHubRouter
         return Convert.ChangeType(from, type);
     }
 
-    private readonly ConcurrentDictionary<string, SubjectConfig> fromBackendToUi = new ConcurrentDictionary<string, SubjectConfig>(new Dictionary<string, SubjectConfig>
-    {
-        {"subject name", new SubjectConfig(typeof(int), DirectConvert) },
-        { AppEvents.GetConnectionResponse, new SubjectConfig(typeof(AppConnectionResponse), (type, from) =>
+    private readonly ConcurrentDictionary<string, SubjectConfig> fromBackendToUi = new(
+        new Dictionary<string, SubjectConfig>
         {
-            throw new NotImplementedException();
-        }) },
-        { AppEvents.CloseConnectionResponse, new SubjectConfig() },
-    });
-    
+            { "subject name", new SubjectConfig(typeof(int), DirectConvert) },
+            {
+                AppEvents.GetConnectionResponse,
+                new SubjectConfig(typeof(AppConnectionResponse),
+                    (type, from) => { throw new NotImplementedException(); })
+            },
+            { AppEvents.CloseConnectionResponse, new SubjectConfig() }
+        });
+
     private IEnumerable<IDisposable> _subscriptions = Enumerable.Empty<IDisposable>();
-    
+
     public HubRouter(
         IBus bus,
         IHubContext<BusHub, IBusHub> busHub)
@@ -40,17 +42,23 @@ public class HubRouter : IEventHandler, IHubRouter
 
         _fromUiToBackend = new ConcurrentDictionary<string, SubjectConfig>(new Dictionary<string, SubjectConfig>
         {
-            {"subject name", new SubjectConfig(typeof(int), DirectConvert)},
-            { AppEvents.GetConnection, new SubjectConfig(typeof(AppConnectionRequest), (type, from) =>
+            { "subject name", new SubjectConfig(typeof(int), DirectConvert) },
             {
-                var o = JsonSerializer.Deserialize<AppConnectionRequest>(from, HostJsonContext.Default.AppConnectionRequest);
-                return o;
-            }) },
-            { AppEvents.CloseConnection, new SubjectConfig(typeof(AppDisconnectRequest), (type, from) =>
+                AppEvents.GetConnection, new SubjectConfig(typeof(AppConnectionRequest), (type, from) =>
+                {
+                    var o = JsonSerializer.Deserialize<AppConnectionRequest>(from,
+                        HostJsonContext.Default.AppConnectionRequest);
+                    return o;
+                })
+            },
             {
-                var o = JsonSerializer.Deserialize<AppDisconnectRequest>(from, HostJsonContext.Default.AppDisconnectRequest);
-                return o;
-            }) },
+                AppEvents.CloseConnection, new SubjectConfig(typeof(AppDisconnectRequest), (type, from) =>
+                {
+                    var o = JsonSerializer.Deserialize<AppDisconnectRequest>(from,
+                        HostJsonContext.Default.AppDisconnectRequest);
+                    return o;
+                })
+            }
         });
     }
 
@@ -66,19 +74,22 @@ public class HubRouter : IEventHandler, IHubRouter
 
             subs.Add(subscription);
         }
+
         _subscriptions = subs;
     }
+
     public void StopListening()
     {
-        foreach (var subscription in _subscriptions) {
+        foreach (var subscription in _subscriptions)
             try
             {
                 subscription.Dispose();
             }
-            catch {
+            catch
+            {
                 //nothing, we just dont want to fail while disposing
-            }            
-        }
+            }
+
         _subscriptions = Enumerable.Empty<IDisposable>();
     }
 
@@ -90,7 +101,7 @@ public class HubRouter : IEventHandler, IHubRouter
 
     public Task HandleBackendEvent(string subject, string eventId, string correlationId, JsonElement? eventObj = null)
     {
-        if (_fromUiToBackend.TryGetValue(subject, out SubjectConfig? config))
+        if (_fromUiToBackend.TryGetValue(subject, out var config))
         {
             if (config.type is null)
             {
@@ -105,6 +116,7 @@ public class HubRouter : IEventHandler, IHubRouter
                 }
             }
         }
+
         return Task.CompletedTask;
     }
 

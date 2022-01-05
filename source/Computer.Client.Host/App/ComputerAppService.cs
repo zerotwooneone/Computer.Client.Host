@@ -5,12 +5,13 @@ namespace Computer.Client.Host.App;
 public class ComputerAppService : IComputerAppService
 {
     private readonly IBus bus;
-    private readonly List<IDisposable> subscriptions = new List<IDisposable>();
+    private readonly List<IDisposable> subscriptions = new();
 
     public ComputerAppService(IBus bus)
     {
         this.bus = bus;
     }
+
     public Task ReStartListening()
     {
         subscriptions.Add(
@@ -25,7 +26,6 @@ public class ComputerAppService : IComputerAppService
     public void StopListening()
     {
         foreach (var subscription in subscriptions)
-        {
             try
             {
                 subscription.Dispose();
@@ -34,7 +34,7 @@ public class ComputerAppService : IComputerAppService
             {
                 //nothing
             }
-        }
+
         subscriptions.Clear();
     }
 
@@ -49,9 +49,9 @@ public class ComputerAppService : IComputerAppService
         var instanceId = busEvent.Param.instanceId ?? Guid.NewGuid().ToString();
         await Task.Delay(100); //simulate some work
         //todo: tell BusHub to connect the application so we can skip the bus
-        await bus.Publish(Events.GetConnectionResponse, new AppConnectionResponse(instanceId), correlationId: busEvent.CorrelationId);
+        await bus.Publish(Events.GetConnectionResponse, new AppConnectionResponse(instanceId),
+            correlationId: busEvent.CorrelationId);
     }
-    
 }
 
 public static class Events
@@ -63,5 +63,7 @@ public static class Events
 }
 
 public record AppConnectionRequest(string? instanceId, string appId);
+
 public record AppDisconnectRequest(string instanceId, string appId);
+
 public record AppConnectionResponse(string instanceId);

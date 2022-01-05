@@ -9,11 +9,13 @@ public class ReactiveBus : IBus
 {
     private readonly IScheduler scheduler;
     private readonly Subject<BusEvent> _bus;
+
     public ReactiveBus(IScheduler scheduler)
     {
         this.scheduler = scheduler;
         _bus = new Subject<BusEvent>();
     }
+
     public Task Publish(string subject, Type type, object obj, string? eventId = null, string? correlationId = null)
     {
         var busEvent = new BusEvent(subject, type, obj, eventId, correlationId);

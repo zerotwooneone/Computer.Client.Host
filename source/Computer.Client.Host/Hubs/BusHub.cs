@@ -29,17 +29,14 @@ public partial class BusHub : Hub<IBusHub>
         await base.OnDisconnectedAsync(exception);
     }
 
-    public async Task SendEventToBackend(string? subject, string? eventId, string? correlationId, object? eventObj = null)
+    public async Task SendEventToBackend(string? subject, string? eventId, string? correlationId,
+        object? eventObj = null)
     {
         if (string.IsNullOrWhiteSpace(subject) ||
             string.IsNullOrWhiteSpace(eventId) ||
             string.IsNullOrWhiteSpace(correlationId))
-        {
             return;
-        }
-        
+
         await eventHandler.HandleBackendEvent(subject, eventId, correlationId, (JsonElement?)eventObj);
     }
 }
-
-

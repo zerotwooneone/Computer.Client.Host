@@ -14,6 +14,7 @@ public class AppController : Controller
     {
         this.appService = appService;
     }
+
     [HttpPost]
     public async Task<IActionResult> Json(string service, string method, [FromBody] dynamic body)
     {
@@ -22,7 +23,8 @@ public class AppController : Controller
             var json = body.ToString(); //this is kind of hacky, and depends upon the implementation of the dynamic type
             var result = await appService.JsonFunction(service, method, json);
             return Content(result, "application/json");
-        } catch(RuntimeBinderException)
+        }
+        catch (RuntimeBinderException)
         {
             return ValidationProblem();
         }

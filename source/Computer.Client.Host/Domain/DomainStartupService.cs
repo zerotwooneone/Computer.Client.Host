@@ -19,26 +19,19 @@ public class DomainStartupService : IHostedService
         _busConfig = busConfig;
         _initializer = initializer;
     }
+
     public async Task StartAsync(CancellationToken cancellationToken)
     {
-        if (_busConfig.Value?.Subjects == null)
-        {
-            throw new InvalidDataException("Bus config subjects not found");
-        }
-        if (_busConfig.Value?.Maps == null )
-        {
-            throw new InvalidDataException("Bus config maps not found");
-        }
+        if (_busConfig.Value?.Subjects == null) throw new InvalidDataException("Bus config subjects not found");
+        if (_busConfig.Value?.Maps == null) throw new InvalidDataException("Bus config maps not found");
         var maps = _busConfig.Value.Maps
-            .Aggregate(new List<MapRegistration>(), (list,config) =>
+            .Aggregate(new List<MapRegistration>(), (list, config) =>
             {
                 if (config == null ||
                     string.IsNullOrWhiteSpace(config.Domain) ||
                     string.IsNullOrWhiteSpace(config.Dto) ||
                     string.IsNullOrWhiteSpace(config.Mapper))
-                {
                     return list;
-                }
 
                 var domain = Type.GetType(config.Domain);
                 var dto = Type.GetType(config.Dto);
@@ -46,9 +39,7 @@ public class DomainStartupService : IHostedService
                 if (domain == null ||
                     dto == null ||
                     mapper == null)
-                {
                     return list;
-                }
 
                 var mapRegistration = new MapRegistration(domain, dto, mapper);
                 list.Add(mapRegistration);
@@ -62,7 +53,7 @@ public class DomainStartupService : IHostedService
             list.Add(new SubjectRegistration(config.Key, type));
             return list;
         });
-        
+
         _initializer.Register(subjects, maps);
         var mapperTypes = maps.Select(m => m.Mapper);
         _domainMapRegistrationService.Register(mapperTypes);
@@ -73,5 +64,6 @@ public class DomainStartupService : IHostedService
     }
 }
 
-record MapRegistration(Type Domain, Type Dto, Type Mapper) : IMapRegistration;
-record SubjectRegistration(string SubjectName, Type? Type) : ISubjectRegistration;
+internal record MapRegistration(Type Domain, Type Dto, Type Mapper) : IMapRegistration;
+
+internal record SubjectRegistration(string SubjectName, Type? Type) : ISubjectRegistration;

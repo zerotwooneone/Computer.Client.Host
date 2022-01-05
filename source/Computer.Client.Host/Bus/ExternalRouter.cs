@@ -25,26 +25,29 @@ public class ExternalRouter
     {
         _internalBus = internalBus;
         _externalBus = externalBus;
-        
+
         // _externalToInternal = new(new Dictionary<string, ExternalToInternalConfig>
         // {
         //     {Events.GetConnectionResponse, new ExternalToInternalConfig()},
         //     {Events.CloseConnectionResponse, new ExternalToInternalConfig()},
         // });
-        
-        _internalToExternal = new(new Dictionary<string, InternalToExternalConfig>
-        {
-            {InternalEvents.GetConnection, new InternalToExternalConfig(OnGetConnection)},
-            //{InternalEvents.CloseConnection, new InternalToExternalConfig(OnDisconnectRequest)},
-        });
+
+        _internalToExternal = new ConcurrentDictionary<string, InternalToExternalConfig>(
+            new Dictionary<string, InternalToExternalConfig>
+            {
+                { InternalEvents.GetConnection, new InternalToExternalConfig(OnGetConnection) }
+                //{InternalEvents.CloseConnection, new InternalToExternalConfig(OnDisconnectRequest)},
+            });
     }
+
     public async Task RestartListening()
     {
         await StopListening();
         var extenalSubs = new List<Task<Computer.Bus.Domain.Contracts.ISubscription>>();
         extenalSubs.AddRange(new[]
         {
-            _externalBus.Subscribe<ExternalModels.AppConnectionResponse>(ExternalEvents.GetConnectionResponse, OnConnectionResponse),
+            _externalBus.Subscribe<ExternalModels.AppConnectionResponse>(ExternalEvents.GetConnectionResponse,
+                OnConnectionResponse)
             //_externalBus.Subscribe<ExternalModels.AppDisconnectResponse>(ExternalEvents.CloseConnectionResponse, OnCloseResponse),
         });
         var subscriptions = await Task.WhenAll(extenalSubs);
@@ -58,7 +61,8 @@ public class ExternalRouter
         _subscriptions.AddRange(internalSubs);
     }
 
-    private async Task OnInternalEvent(BusEvent busEvent, KeyValuePair<string,InternalToExternalConfig> internalToExtenalKvp)
+    private async Task OnInternalEvent(BusEvent busEvent,
+        KeyValuePair<string, InternalToExternalConfig> internalToExtenalKvp)
     {
         var result = await internalToExtenalKvp.Value.internalToExternalCallback(internalToExtenalKvp.Key, busEvent);
     }
@@ -66,19 +70,17 @@ public class ExternalRouter
     private async Task<Computer.Bus.Domain.Contracts.IPublishResult> OnGetConnection(string subject, BusEvent busEvent)
     {
         if (busEvent.Param == null)
-        {
-            return Computer.Bus.Domain.Contracts.PublishResult.CreateError("failed trying to publish/route. param was null");
-        }
+            return Computer.Bus.Domain.Contracts.PublishResult.CreateError(
+                "failed trying to publish/route. param was null");
         if (busEvent.Type != typeof(InternalModels.AppConnectionRequest))
-        {
-            return Computer.Bus.Domain.Contracts.PublishResult.CreateError("failed trying to publish/route. types do not match");
-        }
+            return Computer.Bus.Domain.Contracts.PublishResult.CreateError(
+                "failed trying to publish/route. types do not match");
 
         var param = (InternalModels.AppConnectionRequest)busEvent.Param;
         return await _externalBus.Publish<ExternalModels.AppConnectionRequest>(ExternalEvents.GetConnection,
             new ExternalModels.AppConnectionRequest { AppId = param.appId, InstanceId = param.instanceId },
-            eventId: null,
-            correlationId: busEvent.CorrelationId);
+            null,
+            busEvent.CorrelationId);
     }
 
     /*private async Task<IPublishResult> OnDisconnectRequest(string subject, BusEvent busEvent)
@@ -105,10 +107,7 @@ public class ExternalRouter
         _subscriptions.Clear();
         foreach (var subscription in subscriptions)
         {
-            if (subscription == null)
-            {
-                continue;
-            }
+            if (subscription == null) continue;
 
             try
             {
@@ -120,17 +119,18 @@ public class ExternalRouter
             }
         }
     }
-    
-    private async Task OnConnectionResponse(ExternalModels.AppConnectionResponse? param, string eventId, string correlationId)
+
+    private async Task OnConnectionResponse(ExternalModels.AppConnectionResponse? param, string eventId,
+        string correlationId)
     {
-        if(param == null) return;
+        if (param == null) return;
         await _internalBus.Publish(
             InternalEvents.GetConnectionResponse,
             new InternalModels.AppConnectionResponse(param.InstanceId),
-            eventId: null,
+            null,
             correlationId);
     }
-    
+
     // private async Task OnCloseResponse(ExternalModels.AppDisconnectResponse? param, string eventid, string correlationid)
     // {
     //     if(param == null) return;
@@ -143,6 +143,6 @@ public class ExternalRouter
 
     //private record ExternalToInternalConfig();
 
-    private record InternalToExternalConfig(Func<string, BusEvent, Task<Computer.Bus.Domain.Contracts.IPublishResult>> internalToExternalCallback);
+    private record InternalToExternalConfig(
+        Func<string, BusEvent, Task<Computer.Bus.Domain.Contracts.IPublishResult>> internalToExternalCallback);
 }
-

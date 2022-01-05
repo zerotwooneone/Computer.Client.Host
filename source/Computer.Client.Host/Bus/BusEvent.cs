@@ -2,7 +2,8 @@
 
 public record BusEvent
 {
-    public BusEvent(string subject, Type? type = null, object? param = null, string? eventId = null, string? correlationId = null)
+    public BusEvent(string subject, Type? type = null, object? param = null, string? eventId = null,
+        string? correlationId = null)
     {
         Subject = subject;
         Type = type;

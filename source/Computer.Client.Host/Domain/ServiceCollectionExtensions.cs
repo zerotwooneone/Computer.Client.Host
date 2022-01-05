@@ -15,7 +15,7 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddSingleton<Initializer>(new Initializer());
         serviceCollection.AddSingleton<IMapperFactory, MapperFactory>();
         serviceCollection.AddSingleton<DomainMapRegistrationService>();
-        
+
         serviceCollection.AddHostedService<DomainStartupService>();
 
         return serviceCollection;

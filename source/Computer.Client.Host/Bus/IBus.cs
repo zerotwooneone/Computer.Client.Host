@@ -11,16 +11,13 @@ public interface IBus
 public static class BusExtensions
 {
     public static Task Publish<T>(
-        this IBus bus, 
-        string subject, 
-        T obj, 
-        string? eventId = null, 
+        this IBus bus,
+        string subject,
+        T obj,
+        string? eventId = null,
         string? correlationId = null)
     {
-        if(obj == null)
-        {
-            return Task.CompletedTask;
-        }
+        if (obj == null) return Task.CompletedTask;
         return bus.Publish(subject, typeof(T), obj, eventId, correlationId);
     }
 
@@ -31,14 +28,13 @@ public static class BusExtensions
         {
             if (!typeof(T).IsAssignableFrom(type) ||
                 busEvent.Param == null)
-            {
                 return Task.CompletedTask;
-            }
             var param = (T)busEvent.Param;
             var @event = new BusEvent<T>(subject, type, param, busEvent.EventId, busEvent.CorrelationId);
             return callback(@event);
         });
     }
+
     public static IDisposable Subscribe<T>(this IBus bus, string subject, Action<BusEvent<T>> callback)
     {
         var type = typeof(T);
@@ -46,9 +42,7 @@ public static class BusExtensions
         {
             if (!typeof(T).IsAssignableFrom(type) ||
                 busEvent.Param == null)
-            {
                 return Task.CompletedTask;
-            }
             var param = (T)busEvent.Param;
             var @event = new BusEvent<T>(subject, type, param, busEvent.EventId, busEvent.CorrelationId);
             callback(@event);
