@@ -20,7 +20,7 @@ public class DomainStartupService : IHostedService
         _initializer = initializer;
     }
 
-    public async Task StartAsync(CancellationToken cancellationToken)
+    public Task StartAsync(CancellationToken cancellationToken)
     {
         if (_busConfig.Value?.Subjects == null) throw new InvalidDataException("Bus config subjects not found");
         if (_busConfig.Value?.Maps == null) throw new InvalidDataException("Bus config maps not found");
@@ -57,10 +57,12 @@ public class DomainStartupService : IHostedService
         _initializer.Register(subjects, maps);
         var mapperTypes = maps.Select(m => m.Mapper);
         _domainMapRegistrationService.Register(mapperTypes);
+        return Task.CompletedTask;
     }
 
-    public async Task StopAsync(CancellationToken cancellationToken)
+    public Task StopAsync(CancellationToken cancellationToken)
     {
+        return Task.CompletedTask;
     }
 }
 

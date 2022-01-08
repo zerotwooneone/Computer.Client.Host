@@ -7,17 +7,18 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="computer.bus.domain" Version="0.0.4"/>
-        <PackageReference Include="computer.bus.protobuffnet" Version="0.0.3"/>
-        <PackageReference Include="System.Reactive.Linq" Version="5.0.0"/>
+        <PackageReference Include="computer.bus.domain" Version="0.0.4" />
+        <PackageReference Include="computer.bus.protobuffnet" Version="0.0.3" />
+        <PackageReference Include="Computer.Domain.Bus.Reactive" Version="0.0.1" />
+        <PackageReference Include="System.Reactive.Linq" Version="5.0.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Computer.Client.Domain\Computer.Client.Domain.csproj"/>
+        <ProjectReference Include="..\Computer.Client.Domain\Computer.Client.Domain.csproj" />
     </ItemGroup>
 
     <ItemGroup>
-        <Folder Include="App\Model"/>
+        <Folder Include="App\Model" />
     </ItemGroup>
 
 </Project>

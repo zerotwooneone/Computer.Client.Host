@@ -3,14 +3,17 @@ using Computer.Client.Host.Controllers;
 using Computer.Client.Host.Hubs;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.Concurrent;
+using System.Reactive.Linq;
 using System.Text.Json;
+using Computer.Domain.Bus.Reactive.Contracts;
+using Computer.Domain.Bus.Reactive.Contracts.Model;
 using AppEvents = Computer.Client.Host.App.Events;
 
 namespace Computer.Client.Host.Bus;
 
 public class HubRouter : IEventHandler, IHubRouter
 {
-    private readonly IBus bus;
+    private readonly IReactiveBus bus;
     private readonly IHubContext<BusHub, IBusHub> _busHub;
     private readonly ConcurrentDictionary<string, SubjectConfig> _fromUiToBackend;
 
@@ -34,7 +37,7 @@ public class HubRouter : IEventHandler, IHubRouter
     private IEnumerable<IDisposable> _subscriptions = Enumerable.Empty<IDisposable>();
 
     public HubRouter(
-        IBus bus,
+        IReactiveBus bus,
         IHubContext<BusHub, IBusHub> busHub)
     {
         this.bus = bus;
@@ -69,8 +72,12 @@ public class HubRouter : IEventHandler, IHubRouter
         foreach (var subject in fromBackendToUi)
         {
             var subscription = subject.Value.type == null
-                ? bus.Subscribe(subject.Key, e => ConvertToHubEvent(e))
-                : bus.Subscribe(subject.Key, subject.Value.type, e => ConvertToHubEvent(e));
+                ? bus.Subscribe(subject.Key)
+                    .SelectMany(e => Observable.FromAsync(async _=>await ConvertToHubEvent(subject.Key,e)) )
+                    .Subscribe()
+                : bus.Subscribe(subject.Key, subject.Value.type)
+                    .SelectMany(e => Observable.FromAsync(async _=>await ConvertToHubEvent(subject.Key,e)) )
+                    .Subscribe();
 
             subs.Add(subscription);
         }
@@ -93,9 +100,14 @@ public class HubRouter : IEventHandler, IHubRouter
         _subscriptions = Enumerable.Empty<IDisposable>();
     }
 
-    private async Task ConvertToHubEvent(BusEvent busEvent)
+    private async Task ConvertToHubEvent(string subject, IBareEvent busEvent)
     {
-        var @event = new EventForFrontEnd(busEvent.Subject, busEvent.EventId, busEvent.CorrelationId, busEvent.Param);
+        var @event = new EventForFrontEnd(subject, busEvent.EventId, busEvent.CorrelationId, null);
+        await _busHub.Clients.All.EventToFrontEnd(@event);
+    }
+    private async Task ConvertToHubEvent(string subject, IBusEvent busEvent)
+    {
+        var @event = new EventForFrontEnd(subject, busEvent.EventId, busEvent.CorrelationId, busEvent.Param);
         await _busHub.Clients.All.EventToFrontEnd(@event);
     }
 

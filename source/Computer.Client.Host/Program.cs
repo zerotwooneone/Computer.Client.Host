@@ -3,7 +3,6 @@ using Computer.Client.Host.App;
 using Computer.Client.Host.Bus;
 using Computer.Client.Host.Controllers;
 using Computer.Client.Host.Hubs;
-using System.Reactive.Concurrency;
 using Computer.Bus.Contracts;
 using Computer.Bus.ProtobuffNet;
 using Computer.Bus.RabbitMq;
@@ -33,14 +32,7 @@ builder.Services.AddSingleton<IListService, ListService>();
 builder.Services.AddSingleton<HostJsonContext>();
 builder.Services.AddSingleton<IAppService, DummyAppService>();
 builder.Services.AddSingleton<IAppConnectionRepo, AppConnectionRepo>();
-builder.Services.AddSingleton<IScheduler>(Scheduler.Default);
-builder.Services.AddSingleton<IBus, ReactiveBus>();
 builder.Services.AddSingleton<IComputerAppService, ComputerAppService>();
-
-builder.Services
-    .AddSingleton<HubRouter>(); //this ensures only one instance, even though we implement multiple interfaces
-builder.Services.AddSingleton<IEventHandler>(x => x.GetRequiredService<HubRouter>());
-builder.Services.AddSingleton<IHubRouter>(x => x.GetRequiredService<HubRouter>());
 
 builder.Services.AddSingleton<ISerializer, ProtoSerializer>();
 builder.Services.AddSingleton<IConnectionFactory, SingletonConnectionFactory>();
@@ -51,11 +43,12 @@ builder.Services.AddSingleton<IBusClient>(serviceProvider =>
     var connectionFactory = serviceProvider.GetService<IConnectionFactory>() ?? throw new InvalidOperationException();
     return clientFactory.Create(serializer, connectionFactory);
 });
-builder.Services.AddSingleton<ExternalRouter>();
 
 builder.Services.AddSignalR();
 builder.Services.AddDomain(builder.Configuration);
-builder.Services.AddHostedService<BusInitialization>();
+builder.Services.AddBus();
+
+builder.Services.AddControllersWithViews();
 
 var app = builder.Build();
 

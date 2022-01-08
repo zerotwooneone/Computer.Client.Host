@@ -1,25 +1,30 @@
-﻿using Computer.Client.Host.Bus;
+﻿using System.Reactive.Linq;
+using Computer.Domain.Bus.Reactive.Contracts;
+using Computer.Domain.Bus.Reactive.Contracts.Model;
 
 namespace Computer.Client.Host.App;
 
 public class ComputerAppService : IComputerAppService
 {
-    private readonly IBus bus;
+    private readonly IReactiveBus bus;
     private readonly List<IDisposable> subscriptions = new();
 
-    public ComputerAppService(IBus bus)
+    public ComputerAppService(IReactiveBus bus)
     {
         this.bus = bus;
     }
 
     public Task ReStartListening()
     {
-        subscriptions.Add(
-            bus.Subscribe<AppConnectionRequest>(Events.GetConnection, OnConnectionRequest)
-        );
-        subscriptions.Add(
-            bus.Subscribe<AppDisconnectRequest>(Events.CloseConnection, OnDisconnectRequest)
-        );
+        subscriptions.AddRange(new []
+        {
+            bus.Subscribe<AppConnectionRequest>(Events.GetConnection)
+                .SelectMany(e => Observable.FromAsync(async _ => await OnConnectionRequest(e)))
+                .Subscribe(),
+            bus.Subscribe<AppDisconnectRequest>(Events.CloseConnection)
+                .SelectMany(e => Observable.FromAsync(async _ => await OnDisconnectRequest(e)))
+                .Subscribe(),
+        });
         return Task.CompletedTask;
     }
 
@@ -38,14 +43,18 @@ public class ComputerAppService : IComputerAppService
         subscriptions.Clear();
     }
 
-    private Task OnDisconnectRequest(BusEvent<AppDisconnectRequest> busEvent)
+    private Task OnDisconnectRequest(IBusEvent<AppDisconnectRequest> busEvent)
     {
         //todo: fill this in later
         return Task.CompletedTask;
     }
 
-    private async Task OnConnectionRequest(BusEvent<AppConnectionRequest> busEvent)
+    private async Task OnConnectionRequest(IBusEvent<AppConnectionRequest> busEvent)
     {
+        if (busEvent.Param == null)
+        {
+            throw new InvalidOperationException("Connection Param was null");
+        }
         var instanceId = busEvent.Param.instanceId ?? Guid.NewGuid().ToString();
         await Task.Delay(100); //simulate some work
         //todo: tell BusHub to connect the application so we can skip the bus
