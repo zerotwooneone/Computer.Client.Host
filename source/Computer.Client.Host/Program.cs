@@ -1,9 +1,3 @@
-using Computer.Client.Host.App;
-using Computer.Client.Host.Controllers;
-using Computer.Bus.Contracts;
-using Computer.Bus.ProtobuffNet;
-using Computer.Bus.RabbitMq;
-using Computer.Bus.RabbitMq.Contracts;
 using Computer.Client.App.Bus;
 using Computer.Client.App.Domain;
 using Computer.Client.App.ExternalBus;
@@ -12,7 +6,7 @@ using Computer.Client.Domain.App;
 using Computer.Client.Domain.App.ToDoList;
 using Computer.Client.Domain.Contracts.App;
 using Computer.Client.Domain.Contracts.App.ToDoList;
-using HostJsonContext = Computer.Client.Domain.Model.HostJsonContext;
+using Computer.Client.Domain.Model;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -31,12 +25,9 @@ builder.Services.AddCors(options =>
             .AllowCredentials();
     });
 });
-builder.Services.AddSingleton<IListService, ListService>();
-builder.Services.AddSingleton<HostJsonContext>();
-builder.Services.AddSingleton<IAppService, DummyAppService>();
-builder.Services.AddSingleton<IAppConnectionRepo, AppConnectionRepo>();
-builder.Services.AddSingleton<IComputerAppService, ComputerAppService>();
 
+
+builder.Services.AddSingleton<HostJsonContext>();
 builder.Services.AddExternalBus();
 
 builder.Services.AddSignalR();

@@ -1,6 +1,10 @@
 ﻿using Computer.Bus.Domain;
 using Computer.Bus.Domain.Contracts;
 using Computer.Client.App.Domain.Config;
+using Computer.Client.Domain.App;
+using Computer.Client.Domain.App.ToDoList;
+using Computer.Client.Domain.Contracts.App;
+using Computer.Client.Domain.Contracts.App.ToDoList;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -17,6 +21,10 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddSingleton<Initializer>(new Initializer());
         serviceCollection.AddSingleton<IMapperFactory, MapperFactory>();
         serviceCollection.AddSingleton<DomainMapRegistrationService>();
+        
+        serviceCollection.AddSingleton<IListService, ListService>();
+        serviceCollection.AddSingleton<IAppService, DummyAppService>();
+        serviceCollection.AddSingleton<IComputerAppService, ComputerAppService>();
 
         serviceCollection.AddHostedService<DomainStartupService>();
 
