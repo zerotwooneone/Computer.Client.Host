@@ -1,9 +1,8 @@
 ﻿using System.Text.Json;
 using Computer.Client.Domain.Contracts.App;
 using Computer.Client.Domain.Contracts.App.ToDoList;
-using Computer.Client.Domain.Model;
 
-namespace Computer.Client.Domain.App;
+namespace Computer.Client.App.Model;
 
 /// <summary>
 /// This is a placeholder. This class pretends to be a router that converts json requests into app calls

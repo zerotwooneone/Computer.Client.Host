@@ -2,9 +2,9 @@
 using System.Reactive.Linq;
 using System.Text.Json;
 using Computer.Client.App.Hubs;
+using Computer.Client.App.Model;
 using Computer.Client.Domain.Contracts.Bus;
 using Computer.Client.Domain.Contracts.Model;
-using Computer.Client.Domain.Model;
 using Computer.Domain.Bus.Reactive.Contracts;
 using Computer.Domain.Bus.Reactive.Contracts.Model;
 using Microsoft.AspNetCore.SignalR;

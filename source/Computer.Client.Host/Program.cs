@@ -2,11 +2,7 @@ using Computer.Client.App.Bus;
 using Computer.Client.App.Domain;
 using Computer.Client.App.ExternalBus;
 using Computer.Client.App.Hubs;
-using Computer.Client.Domain.App;
-using Computer.Client.Domain.App.ToDoList;
-using Computer.Client.Domain.Contracts.App;
-using Computer.Client.Domain.Contracts.App.ToDoList;
-using Computer.Client.Domain.Model;
+using Computer.Client.App.Model;
 
 var builder = WebApplication.CreateBuilder(args);
 

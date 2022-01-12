@@ -1,6 +1,7 @@
 ﻿using Computer.Bus.Domain;
 using Computer.Bus.Domain.Contracts;
 using Computer.Client.App.Domain.Config;
+using Computer.Client.App.Model;
 using Computer.Client.Domain.App;
 using Computer.Client.Domain.App.ToDoList;
 using Computer.Client.Domain.Contracts.App;
