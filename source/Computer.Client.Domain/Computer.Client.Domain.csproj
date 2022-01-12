@@ -7,16 +7,13 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="computer.bus.domain.contracts" Version="0.0.2"/>
-        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0"/>
+        <PackageReference Include="computer.bus.domain.contracts" Version="0.0.2" />
+        <PackageReference Include="Computer.Domain.Bus.Reactive.Contracts" Version="0.0.1" />
+        <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
     </ItemGroup>
 
     <ItemGroup>
-        <ProjectReference Include="..\Computer.Client.Domain.Contracts\Computer.Client.Domain.Contracts.csproj"/>
-    </ItemGroup>
-
-    <ItemGroup>
-        <Folder Include="Model"/>
+        <ProjectReference Include="..\Computer.Client.Domain.Contracts\Computer.Client.Domain.Contracts.csproj" />
     </ItemGroup>
 
 </Project>

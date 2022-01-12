@@ -18,8 +18,4 @@
         <ProjectReference Include="..\Computer.Client.Domain\Computer.Client.Domain.csproj" />
     </ItemGroup>
 
-    <ItemGroup>
-        <Folder Include="App\Model" />
-    </ItemGroup>
-
 </Project>
