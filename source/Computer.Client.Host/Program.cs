@@ -6,12 +6,12 @@ using Computer.Bus.RabbitMq;
 using Computer.Bus.RabbitMq.Contracts;
 using Computer.Client.App.Bus;
 using Computer.Client.App.Domain;
+using Computer.Client.App.ExternalBus;
 using Computer.Client.App.Hubs;
 using Computer.Client.Domain.App;
 using Computer.Client.Domain.App.ToDoList;
 using Computer.Client.Domain.Contracts.App;
 using Computer.Client.Domain.Contracts.App.ToDoList;
-using Computer.Client.Host.ExternalBus;
 using HostJsonContext = Computer.Client.Domain.Model.HostJsonContext;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -37,15 +37,7 @@ builder.Services.AddSingleton<IAppService, DummyAppService>();
 builder.Services.AddSingleton<IAppConnectionRepo, AppConnectionRepo>();
 builder.Services.AddSingleton<IComputerAppService, ComputerAppService>();
 
-builder.Services.AddSingleton<ISerializer, ProtoSerializer>();
-builder.Services.AddSingleton<IConnectionFactory, SingletonConnectionFactory>();
-builder.Services.AddSingleton<IBusClient>(serviceProvider =>
-{
-    var clientFactory = new ClientFactory();
-    var serializer = serviceProvider.GetService<ISerializer>() ?? throw new InvalidOperationException();
-    var connectionFactory = serviceProvider.GetService<IConnectionFactory>() ?? throw new InvalidOperationException();
-    return clientFactory.Create(serializer, connectionFactory);
-});
+builder.Services.AddExternalBus();
 
 builder.Services.AddSignalR();
 builder.Services.AddDomain(builder.Configuration);

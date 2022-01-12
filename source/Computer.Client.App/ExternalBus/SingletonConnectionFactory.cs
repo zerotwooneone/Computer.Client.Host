@@ -1,7 +1,7 @@
 ﻿using RabbitMQ.Client;
 using IConnectionFactory = Computer.Bus.RabbitMq.Contracts.IConnectionFactory;
 
-namespace Computer.Client.Host.ExternalBus;
+namespace Computer.Client.App.ExternalBus;
 
 public class SingletonConnectionFactory : IConnectionFactory
 {
