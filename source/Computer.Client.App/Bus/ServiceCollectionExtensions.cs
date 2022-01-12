@@ -7,7 +7,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Computer.Client.App.Bus;
 
-public static class ServiceCollectionExtentions
+public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddBus(this IServiceCollection serviceCollection)
     {
