@@ -1,6 +1,6 @@
 ﻿using Computer.Bus.Domain.Contracts;
 
-namespace Computer.Client.Host.Domain;
+namespace Computer.Client.App.Domain;
 
 public class DomainMapRegistrationService
 {

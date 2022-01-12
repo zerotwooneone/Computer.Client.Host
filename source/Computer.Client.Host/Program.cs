@@ -5,12 +5,12 @@ using Computer.Bus.ProtobuffNet;
 using Computer.Bus.RabbitMq;
 using Computer.Bus.RabbitMq.Contracts;
 using Computer.Client.App.Bus;
+using Computer.Client.App.Domain;
 using Computer.Client.App.Hubs;
 using Computer.Client.Domain.App;
 using Computer.Client.Domain.App.ToDoList;
 using Computer.Client.Domain.Contracts.App;
 using Computer.Client.Domain.Contracts.App.ToDoList;
-using Computer.Client.Host.Domain;
 using Computer.Client.Host.ExternalBus;
 using HostJsonContext = Computer.Client.Domain.Model.HostJsonContext;
 

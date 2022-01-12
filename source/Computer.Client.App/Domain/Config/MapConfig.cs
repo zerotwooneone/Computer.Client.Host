@@ -1,4 +1,4 @@
-﻿namespace Computer.Client.Host.Domain.Config;
+﻿namespace Computer.Client.App.Domain.Config;
 
 public class MapConfig
 {

@@ -1,9 +1,10 @@
 ﻿using Computer.Bus.Domain;
 using Computer.Bus.Domain.Contracts;
-using Computer.Client.Host.Domain.Config;
+using Computer.Client.App.Domain.Config;
+using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 
-namespace Computer.Client.Host.Domain;
+namespace Computer.Client.App.Domain;
 
 public class DomainStartupService : IHostedService
 {
