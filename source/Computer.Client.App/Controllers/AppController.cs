@@ -1,4 +1,4 @@
-﻿using Computer.Client.Domain.Contracts.App;
+﻿using Computer.Client.App.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.CSharp.RuntimeBinder;
 

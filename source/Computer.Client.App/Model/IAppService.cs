@@ -1,4 +1,4 @@
-﻿namespace Computer.Client.Domain.Contracts.App;
+﻿namespace Computer.Client.App.Model;
 
 public interface IAppService
 {
