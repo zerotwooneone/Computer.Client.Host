@@ -36,11 +36,22 @@ public class DummyAppService : IAppService
         switch (methodName)
         {
             case "GetById":
-                if (string.IsNullOrWhiteSpace(json)) throw new ArgumentException($"Missing param {nameof(json)}");
+                if (string.IsNullOrWhiteSpace(json))
+                {
+                    throw new ArgumentException($"Missing param {nameof(json)}");
+                }
+
                 var param = JsonSerializer.Deserialize<ListGetByIdParam?>(json, jsonContext.ListGetByIdParam!);
-                if (param == null) throw new ArgumentException($"Invalid param {nameof(param)}");
+                if (param == null)
+                {
+                    throw new ArgumentException($"Invalid param {nameof(param)}");
+                }
+
                 if (string.IsNullOrWhiteSpace(param.Id))
+                {
                     throw new ArgumentException($"Missing param {nameof(param.Id)}");
+                }
+
                 var list = await listService.GetById(param.Id, param.HaveVersion);
                 var result = JsonSerializer.Serialize(list, jsonContext.ListModel);
                 return result;

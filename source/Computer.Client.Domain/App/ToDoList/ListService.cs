@@ -1,4 +1,5 @@
 ﻿using Computer.Client.Domain.Contracts.App.ToDoList;
+using Computer.Client.Domain.Contracts.Model;
 
 namespace Computer.Client.Domain.App.ToDoList;
 
@@ -55,7 +56,17 @@ public class ListService : IListService
         return Task.CompletedTask;
     }
 
-    public Task<ListModel> GetById(string id, ulong? haveVersion)
+    public async Task<TypedResult<ListModel>> GetDefaultListByUserId(string userId)
+    {
+        if (userId == "throw an error")
+        {
+            return new TypedResult<ListModel>("User not found");
+        }
+        var listId = "some list id";
+        return new TypedResult<ListModel>(await GetById(userId));
+    }
+
+    public Task<ListModel> GetById(string id, ulong? haveVersion = null)
     {
         return Task.FromResult(dummy);
     }
