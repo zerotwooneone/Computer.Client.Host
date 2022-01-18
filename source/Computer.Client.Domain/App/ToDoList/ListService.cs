@@ -1,10 +1,19 @@
 ﻿using Computer.Client.Domain.Contracts.App.ToDoList;
+using Computer.Client.Domain.Contracts.Bus;
 using Computer.Client.Domain.Contracts.Model;
+using Computer.Client.Domain.Contracts.Model.ToDoList;
+using Computer.Domain.Bus.Contracts;
 
 namespace Computer.Client.Domain.App.ToDoList;
 
 public class ListService : IListService
 {
+    private readonly IRequestService _requestService;
+
+    public ListService(IRequestService requestService)
+    {
+        _requestService = requestService;
+    }
     private ListModel dummy = new()
     {
         Id = "some backend id",
@@ -62,13 +71,18 @@ public class ListService : IListService
         {
             return new TypedResult<ListModel>("User not found");
         }
-        var listId = "some list id";
-        return new TypedResult<ListModel>(await GetById(userId));
-    }
+        var request = new DefaultListRequest { UserId = userId };
 
-    public Task<ListModel> GetById(string id, ulong? haveVersion = null)
-    {
-        return Task.FromResult(dummy);
+        var correlationId = Guid.NewGuid().ToString();
+        var response = await _requestService.Request<DefaultListRequest, DefaultListResponse>(request, Events.DefaultListRequest, Events.DefaultListResponse, correlationId);
+        if(response == null || 
+            !response.Success || 
+            response.Obj == null || 
+            response.Obj.List == null)
+        {
+            return new TypedResult<ListModel>("something went wrong");
+        }
+        return new TypedResult<ListModel>(response.Obj.List);
     }
 
     public IDisposable RegisterForUpdates(string id, Action<ListChanged> callback)

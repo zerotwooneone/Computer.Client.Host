@@ -2,6 +2,7 @@
 using Computer.Client.App.Controllers;
 using Computer.Client.Domain.Contracts.App.ToDoList;
 using Computer.Client.Domain.Contracts.Model;
+using Computer.Client.Domain.Contracts.Model.ToDoList;
 using static Computer.Client.App.Model.DummyAppService;
 
 namespace Computer.Client.App.Model;

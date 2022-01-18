@@ -8,6 +8,7 @@
 
     <ItemGroup>
         <PackageReference Include="computer.bus.domain.contracts" Version="0.0.2" />
+        <PackageReference Include="Computer.Domain.Bus.Contracts" Version="0.0.1" />
         <PackageReference Include="Computer.Domain.Bus.Reactive.Contracts" Version="0.0.1" />
     </ItemGroup>
 

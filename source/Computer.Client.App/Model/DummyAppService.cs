@@ -52,9 +52,10 @@ public class DummyAppService : IAppService
                     throw new ArgumentException($"Missing param {nameof(param.Id)}");
                 }
 
-                var list = await listService.GetById(param.Id, param.HaveVersion);
-                var result = JsonSerializer.Serialize(list, jsonContext.ListModel);
-                return result;
+                //var list = await listService.GetById(param.Id, param.HaveVersion);
+                //var result = JsonSerializer.Serialize(list, jsonContext.ListModel);
+                //return result;
+                throw new NotImplementedException();
             default:
                 throw new ArgumentException($"Unknown Method Name {methodName}");
         }

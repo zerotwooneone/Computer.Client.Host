@@ -1,5 +1,5 @@
 ﻿using Computer.Client.Domain.Contracts.App.ToDoList;
-using Computer.Client.Domain.Contracts.Model;
+using Computer.Client.Domain.Contracts.Model.ToDoList;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Computer.Client.App.Controllers;
