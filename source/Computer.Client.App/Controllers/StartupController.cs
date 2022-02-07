@@ -18,6 +18,10 @@ public class StartupController : Controller
         var list = await _listService.GetDefaultListByUserId("some user id");
         if (list.Success)
         {
+            if (list.Left == null)
+            {
+                throw new Exception("Request was not a success");
+            }
             return Json(new StartupModel(list.Left.Value));
         }
 

@@ -19,6 +19,7 @@ public static class ServiceCollectionExtensions
             var connectionFactory = serviceProvider.GetService<IConnectionFactory>() ?? throw new InvalidOperationException();
             return clientFactory.Create(serializer, connectionFactory);
         });
+        serviceCollection.AddSingleton<IRequestService, Computer.Bus.RabbitMq.Client.RequestService>();
         
         return serviceCollection;
     }
