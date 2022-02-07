@@ -1,4 +1,5 @@
 ﻿using Computer.Bus.Domain.Contracts;
+using Computer.Bus.Domain.Contracts.Models;
 
 namespace Computer.Client.App.Domain;
 

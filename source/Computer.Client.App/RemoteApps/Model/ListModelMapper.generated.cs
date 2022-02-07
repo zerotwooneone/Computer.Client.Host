@@ -1,4 +1,4 @@
-using Computer.Bus.Domain.Contracts;
+using Computer.Bus.Domain.Contracts.Models;
 using System;
 
 namespace Computer.Client.App.RemoteApps.Model;

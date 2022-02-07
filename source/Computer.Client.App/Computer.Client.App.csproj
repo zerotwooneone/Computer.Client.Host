@@ -7,9 +7,9 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <PackageReference Include="Computer.Bus.Contracts" Version="0.0.8" />
-      <PackageReference Include="Computer.Bus.Domain" Version="0.0.4" />
-      <PackageReference Include="Computer.Bus.ProtobuffNet" Version="0.0.3" />
+      <PackageReference Include="Computer.Bus.Contracts" Version="0.0.11" />
+      <PackageReference Include="Computer.Bus.Domain" Version="0.0.7" />
+      <PackageReference Include="Computer.Bus.ProtobuffNet" Version="0.0.7" />
       <PackageReference Include="Computer.Domain.Bus.Reactive" Version="0.0.1" />
       <PackageReference Include="Microsoft.AspNetCore.Mvc" Version="2.2.0" />
       <PackageReference Include="Microsoft.AspNetCore.SignalR.Core" Version="1.1.0" />

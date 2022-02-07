@@ -1,6 +1,6 @@
 #nullable enable
-using Computer.Bus.Domain.Contracts;
 using System;
+using Computer.Bus.Domain.Contracts.Models;
 
 namespace Computer.Client.App.RemoteApps.Model;
 public partial class AppConnectionRequestMapper : IMapper
