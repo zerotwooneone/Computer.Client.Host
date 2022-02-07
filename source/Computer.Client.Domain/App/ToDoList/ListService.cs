@@ -14,26 +14,6 @@ public class ListService : IListService
     {
         _requestService = requestService;
     }
-    private ListModel dummy = new()
-    {
-        Id = "some backend id",
-        Items = new ItemModel[]
-        {
-            new()
-            {
-                Text = "some backend text"
-            },
-            new()
-            {
-                Url = "https://www.google.com"
-            },
-            new()
-            {
-                Checked = true,
-                ImageUrl = "https://thumbs.gfycat.com/CalmCooperativeKudu-size_restricted.gif"
-            }
-        }
-    };
 
     private static readonly Lazy<Thread> updateThread = new(() =>
     {

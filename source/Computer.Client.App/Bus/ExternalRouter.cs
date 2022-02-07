@@ -1,6 +1,7 @@
 ﻿using System.Collections.Concurrent;
 using System.Reactive.Linq;
 using Computer.Bus.Domain.Contracts;
+using Computer.Client.Domain.Contracts.Model.ToDoList;
 using DomainModels = Computer.Client.Domain.Contracts.Model;
 using IExternalBus = Computer.Bus.Domain.Contracts.IBus;
 using ExternalEvents = Computer.Client.Domain.Contracts.Bus.Events;
@@ -35,9 +36,31 @@ public class ExternalRouter
         _internalToExternal = new ConcurrentDictionary<string, InternalToExternalConfig>(
             new Dictionary<string, InternalToExternalConfig>
             {
-                { InternalEvents.GetConnection, new InternalToExternalConfig(OnGetConnection, typeof(DomainModels.AppConnectionRequest)) }
+                { InternalEvents.GetConnection, new InternalToExternalConfig(OnGetConnection, typeof(DomainModels.AppConnectionRequest)) },
                 //{InternalEvents.CloseConnection, new InternalToExternalConfig(OnDisconnectRequest)},
+                { InternalEvents.DefaultListRequest, new InternalToExternalConfig(OnDefaultListRequest, typeof(DomainModels.ToDoList.DefaultListRequest)) }
             });
+    }
+
+    private async Task<IPublishResult> OnDefaultListRequest(string subject, InternalBusEvent busEvent)
+    {
+        if (busEvent.Param == null)
+        {
+            return Computer.Bus.Domain.Contracts.PublishResult.CreateError(
+                "failed trying to publish/route. param was null");
+        }
+
+        if (!typeof(DomainModels.ToDoList.DefaultListRequest).IsAssignableFrom(busEvent.Type))
+        {
+            return Computer.Bus.Domain.Contracts.PublishResult.CreateError(
+                "failed trying to publish/route. types do not match");
+        }
+
+        var param = (DomainModels.ToDoList.DefaultListRequest)busEvent.Param;
+        return await _externalBus.Publish<DomainModels.ToDoList.DefaultListRequest>(ExternalEvents.DefaultListRequest,
+            param,
+            null,
+            busEvent.CorrelationId);
     }
 
     public async Task RestartListening()
@@ -47,8 +70,11 @@ public class ExternalRouter
         extenalSubs.AddRange(new[]
         {
             _externalBus.Subscribe<DomainModels.AppConnectionResponse>(ExternalEvents.GetConnectionResponse,
-                OnConnectionResponse)
+                OnConnectionResponse),
             //_externalBus.Subscribe<ExternalModels.AppDisconnectResponse>(ExternalEvents.CloseConnectionResponse, OnCloseResponse),
+            _externalBus.Subscribe<DomainModels.ToDoList.DefaultListResponse>(
+                ExternalEvents.DefaultListResponse,
+                OnDefaultListResponse)
         });
         var subscriptions = await Task.WhenAll(extenalSubs);
         _subscriptions.AddRange(subscriptions);
@@ -135,10 +161,28 @@ public class ExternalRouter
     private async Task OnConnectionResponse(DomainModels.AppConnectionResponse? param, string eventId,
         string correlationId)
     {
-        if (param == null) return;
+        if (param == null)
+        {
+            return;
+        }
+
         await _internalBus.Publish(
             InternalEvents.GetConnectionResponse,
             typeof(DomainModels.AppConnectionResponse),
+            param,
+            null,
+            correlationId);
+    }
+    
+    private async Task OnDefaultListResponse(DefaultListResponse? param, string eventId, string correlationId)
+    {
+        if (param == null)
+        {
+            return;
+        }
+        await _internalBus.Publish(
+            InternalEvents.DefaultListResponse,
+            typeof(DomainModels.ToDoList.DefaultListResponse),
             param,
             null,
             correlationId);
