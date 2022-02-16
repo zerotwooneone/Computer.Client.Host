@@ -4,17 +4,22 @@ using Computer.Bus.Domain.Contracts;
 using Computer.Client.Domain.Contracts.Model.ToDoList;
 using DomainModels = Computer.Client.Domain.Contracts.Model;
 using IExternalBus = Computer.Bus.Domain.Contracts.IBus;
+using IExternalRequestService = Computer.Bus.Domain.Contracts.IRequestService;
 using ExternalEvents = Computer.Client.Domain.Contracts.Bus.Events;
 using InternalBus = Computer.Domain.Bus.Reactive.Contracts.IReactiveBus;
 using InternalEvents = Computer.Client.Domain.Contracts.Bus.Events;
 using InternalBusEvent = Computer.Domain.Bus.Reactive.Contracts.Model.IBusEvent;
+using IInternalRequestService = Computer.Domain.Bus.Contracts.IRequestService;
+using DtoModels = Computer.Client.App.RemoteApps.Model;
 
 namespace Computer.Client.App.Bus;
 
 public class ExternalRouter
 {
     private readonly InternalBus _internalBus;
+    private readonly IInternalRequestService _internalRequestService;
     private readonly IExternalBus _externalBus;
+    private readonly IRequestService _externalRequestService;
 
     //private readonly ConcurrentDictionary<string, ExternalToInternalConfig> _externalToInternal;
     private readonly ConcurrentDictionary<string, InternalToExternalConfig> _internalToExternal = new();
@@ -22,10 +27,14 @@ public class ExternalRouter
 
     public ExternalRouter(
         InternalBus internalBus,
-        IExternalBus externalBus)
+        IInternalRequestService internalRequestService,
+        IExternalBus externalBus,
+        IExternalRequestService externalRequestService)
     {
         _internalBus = internalBus;
+        _internalRequestService = internalRequestService;
         _externalBus = externalBus;
+        _externalRequestService = externalRequestService;
 
         // _externalToInternal = new(new Dictionary<string, ExternalToInternalConfig>
         // {
@@ -60,12 +69,12 @@ public class ExternalRouter
         return await _externalBus.Publish<DomainModels.ToDoList.DefaultListRequest>(ExternalEvents.DefaultListRequest,
             param,
             null,
-            busEvent.CorrelationId);
+            busEvent.CorrelationId).ConfigureAwait(false);
     }
 
     public async Task RestartListening()
     {
-        await StopListening();
+        await StopListening().ConfigureAwait(false);
         var extenalSubs = new List<Task<Computer.Bus.Domain.Contracts.ISubscription>>();
         extenalSubs.AddRange(new[]
         {
@@ -76,22 +85,57 @@ public class ExternalRouter
                 ExternalEvents.DefaultListResponse,
                 OnDefaultListResponse)
         });
-        var subscriptions = await Task.WhenAll(extenalSubs);
+        var subscriptions = await Task.WhenAll(extenalSubs).ConfigureAwait(false);
         _subscriptions.AddRange(subscriptions);
-
+        
+        //todo: wire up cancellation
+        var cts = new CancellationTokenSource();
+        
         var internalSubs = _internalToExternal.Select(internalToExtenalKvp =>
         {
             return _internalBus.Subscribe(internalToExtenalKvp.Key, internalToExtenalKvp.Value.InternalSubscribeType)
-                .SelectMany(busEvent => Observable.FromAsync(async _ => await OnInternalEvent(busEvent, internalToExtenalKvp)))
+                .SelectMany(busEvent => Observable.FromAsync(async _ => await OnInternalEvent(busEvent, internalToExtenalKvp).ConfigureAwait(false)))
                 .Subscribe();
-        });
+        }).Append(Computer.Domain.Bus.Contracts.RequestServiceExtensions.Listen<DefaultListRequest, DefaultListResponse>(_internalRequestService, 
+            InternalEvents.DefaultListRequest, InternalEvents.DefaultListResponse, 
+            (q,r,s)=>OnInternalDefaultListRequest(q,r,s, cts.Token)));
         _subscriptions.AddRange(internalSubs);
+    }
+
+    private async Task<DefaultListResponse?> OnInternalDefaultListRequest(DefaultListRequest? param, 
+        string eventId, string correlationId,
+        CancellationToken cancellationToken)
+    {
+        if (param == null)
+        {
+            return new DomainModels.ToDoList.DefaultListResponse { Success = false };
+        }
+        var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        var timeoutToken = new CancellationTokenSource(); //todo: TimeSpan.FromSeconds(1));
+        timeoutToken.Token.Register(() =>
+        {
+            cts.Cancel();
+        });
+        var externalResponse =
+            await _externalRequestService.Request<DomainModels.ToDoList.DefaultListRequest, DomainModels.ToDoList.DefaultListResponse>(
+                param,
+                ExternalEvents.DefaultListRequest, ExternalEvents.DefaultListResponse,
+                eventId: null,
+                correlationId: correlationId, 
+                cancellationToken: cts.Token).ConfigureAwait(false);
+        if (!externalResponse.Success || externalResponse.Obj == null ||
+            externalResponse.Obj.List == null)
+        {
+            return new DomainModels.ToDoList.DefaultListResponse { Success = false };
+        }
+        
+        return externalResponse.Obj;
     }
 
     private async Task OnInternalEvent(InternalBusEvent busEvent,
         KeyValuePair<string, InternalToExternalConfig> internalToExtenalKvp)
     {
-        var result = await internalToExtenalKvp.Value.InternalToExternalCallback(internalToExtenalKvp.Key, busEvent);
+        var result = await internalToExtenalKvp.Value.InternalToExternalCallback(internalToExtenalKvp.Key, busEvent).ConfigureAwait(false);
     }
 
     private async Task<Computer.Bus.Domain.Contracts.IPublishResult> OnGetConnection(string subject, InternalBusEvent busEvent)
@@ -117,7 +161,7 @@ public class ExternalRouter
         return await _externalBus.Publish<DomainModels.AppConnectionRequest>(ExternalEvents.GetConnection,
             param,
             null,
-            busEvent.CorrelationId);
+            busEvent.CorrelationId).ConfigureAwait(false);
     }
 
     /*private async Task<IPublishResult> OnDisconnectRequest(string subject, BusEvent busEvent)
@@ -171,7 +215,7 @@ public class ExternalRouter
             typeof(DomainModels.AppConnectionResponse),
             param,
             null,
-            correlationId);
+            correlationId).ConfigureAwait(false);
     }
     
     private async Task OnDefaultListResponse(DefaultListResponse? param, string eventId, string correlationId)
@@ -185,7 +229,7 @@ public class ExternalRouter
             typeof(DomainModels.ToDoList.DefaultListResponse),
             param,
             null,
-            correlationId);
+            correlationId).ConfigureAwait(false);
     }
 
     // private async Task OnCloseResponse(InternalModels.AppDisconnectResponse? param, string eventid, string correlationid)
@@ -202,5 +246,9 @@ public class ExternalRouter
 
     private record InternalToExternalConfig(
         Func<string, InternalBusEvent, Task<Computer.Bus.Domain.Contracts.IPublishResult>> InternalToExternalCallback,
+        Type InternalSubscribeType);
+    private record InternalToExternalRequestConfig<TInternalRequest, TInternalResponse, TExtenalRequest, TExternalResponse>(
+        Func<string, InternalBusEvent, TInternalRequest> ToInternalRequest,
+        Func<string, InternalBusEvent, TInternalRequest, TExtenalRequest> ToExtenalRequest,
         Type InternalSubscribeType);
 }

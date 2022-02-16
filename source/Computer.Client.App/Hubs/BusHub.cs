@@ -27,7 +27,7 @@ public partial class BusHub : Hub<IBusHub>
     {
         var clientId = Context.ConnectionId;
         logger.LogDebug($"Disconnected {clientId}");
-        await base.OnDisconnectedAsync(exception);
+        await base.OnDisconnectedAsync(exception).ConfigureAwait(false);
     }
 
     public async Task SendEventToBackend(string? subject, string? eventId, string? correlationId,
@@ -38,6 +38,6 @@ public partial class BusHub : Hub<IBusHub>
             string.IsNullOrWhiteSpace(correlationId))
             return;
 
-        await eventHandler.HandleBackendEvent(subject, eventId, correlationId, (JsonElement?)eventObj);
+        await eventHandler.HandleBackendEvent(subject, eventId, correlationId, (JsonElement?)eventObj).ConfigureAwait(false);
     }
 }

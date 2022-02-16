@@ -63,7 +63,7 @@ public class ListModelMapper : IMapper
                 Url = domainItem.Url,
                 ImageUrl = domainItem.ImageUrl,
                 Checked = domainItem.Checked
-            })
+            }).ToList()
         };
     }
 }

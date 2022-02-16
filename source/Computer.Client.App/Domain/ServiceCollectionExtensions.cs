@@ -21,8 +21,9 @@ public static class ServiceCollectionExtensions
         serviceCollection.AddSingleton<IBus, Computer.Bus.Domain.Bus>();
         serviceCollection.AddSingleton<Initializer>(new Initializer());
         serviceCollection.AddSingleton<IMapperFactory, MapperFactory>();
-        serviceCollection.AddSingleton<DomainMapRegistrationService>();
-        
+        serviceCollection.AddSingleton<DomainMapRegistrationService>()
+            .AddSingleton<IRequestService, RequestService>();
+
         serviceCollection.AddSingleton<IListService, ListService>();
         serviceCollection.AddSingleton<IAppService, DummyAppService>();
         serviceCollection.AddSingleton<IComputerAppService, ComputerAppService>();

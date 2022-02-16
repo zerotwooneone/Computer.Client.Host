@@ -25,7 +25,7 @@ public class DummyAppService : IAppService
         switch (appName)
         {
             case "ToDoList":
-                return await ListService(methodName, param);
+                return await ListService(methodName, param).ConfigureAwait(false);
             default:
                 throw new ArgumentException($"Unknown App Name {appName}");
         }

@@ -70,7 +70,7 @@ public class DefaultListResponseMapper : IMapper
                     Url = domainListItem.Url,
                     ImageUrl = domainListItem.ImageUrl,
                     Checked = domainListItem.Checked
-                })
+                }).ToList()
             } : null
         };
     }

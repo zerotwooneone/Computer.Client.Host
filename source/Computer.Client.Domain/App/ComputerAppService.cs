@@ -22,7 +22,7 @@ public class ComputerAppService : IComputerAppService
         subscriptions.AddRange(new []
         {
             bus.Subscribe<AppConnectionRequest>(Events.GetConnection)
-                .SelectMany(e => Observable.FromAsync(async _ => await OnConnectionRequest(e)))
+                .SelectMany(e => Observable.FromAsync(async _ => await OnConnectionRequest(e).ConfigureAwait(false)))
                 .Subscribe(),
             // bus.Subscribe<AppDisconnectRequest>(Events.CloseConnection)
             //     .SelectMany(e => Observable.FromAsync(async _ => await OnDisconnectRequest(e)))
@@ -58,9 +58,9 @@ public class ComputerAppService : IComputerAppService
         {
             throw new InvalidOperationException("Connection Param was null");
         }
-        await Task.Delay(100); //simulate some work
+        await Task.Delay(100).ConfigureAwait(false); //simulate some work
         //todo: tell BusHub to connect the application so we can skip the bus
         await bus.Publish(Events.GetConnectionResponse, new AppConnectionResponse(),
-            correlationId: busEvent.CorrelationId);
+            correlationId: busEvent.CorrelationId).ConfigureAwait(false);
     }
 }

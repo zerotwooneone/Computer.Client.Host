@@ -54,9 +54,9 @@ public class ListService : IListService
         var request = new DefaultListRequest { UserId = userId };
 
         var correlationId = Guid.NewGuid().ToString();
-        var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+        var cts = new CancellationTokenSource(); //todo: TimeSpan.FromSeconds(1));
         var cancellationToken = cts.Token;
-        var response = await _requestService.Request<DefaultListRequest, DefaultListResponse>(request, Events.DefaultListRequest, Events.DefaultListResponse, correlationId, cancellationToken: cancellationToken);
+        var response = await _requestService.Request<DefaultListRequest, DefaultListResponse>(request, Events.DefaultListRequest, Events.DefaultListResponse, correlationId, cancellationToken: cancellationToken).ConfigureAwait(false);
         if(response == null || 
             !response.Success || 
             response.Obj == null || 

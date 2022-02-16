@@ -15,7 +15,7 @@ public class StartupController : Controller
     }
     public async Task<IActionResult> Post(StartupParam param)
     {
-        var list = await _listService.GetDefaultListByUserId("some user id");
+        var list = await _listService.GetDefaultListByUserId("some user id").ConfigureAwait(false);
         if (list.Success)
         {
             if (list.Left == null)

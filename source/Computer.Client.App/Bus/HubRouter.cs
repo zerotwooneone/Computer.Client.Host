@@ -73,10 +73,10 @@ public class HubRouter : IEventHandler, IHubRouter
         {
             var subscription = subject.Value.type == null
                 ? bus.Subscribe(subject.Key)
-                    .SelectMany(e => Observable.FromAsync(async _=>await ConvertToHubEvent(subject.Key,e)) )
+                    .SelectMany(e => Observable.FromAsync(async _=>await ConvertToHubEvent(subject.Key,e).ConfigureAwait(false)) )
                     .Subscribe()
                 : bus.Subscribe(subject.Key, subject.Value.type)
-                    .SelectMany(e => Observable.FromAsync(async _=>await ConvertToHubEvent(subject.Key,e)) )
+                    .SelectMany(e => Observable.FromAsync(async _=>await ConvertToHubEvent(subject.Key,e).ConfigureAwait(false)) )
                     .Subscribe();
 
             subs.Add(subscription);
@@ -103,12 +103,12 @@ public class HubRouter : IEventHandler, IHubRouter
     private async Task ConvertToHubEvent(string subject, IBareEvent busEvent)
     {
         var @event = new EventForFrontEnd(subject, busEvent.EventId, busEvent.CorrelationId, null);
-        await _busHub.Clients.All.EventToFrontEnd(@event);
+        await _busHub.Clients.All.EventToFrontEnd(@event).ConfigureAwait(false);
     }
     private async Task ConvertToHubEvent(string subject, IBusEvent busEvent)
     {
         var @event = new EventForFrontEnd(subject, busEvent.EventId, busEvent.CorrelationId, busEvent.Param);
-        await _busHub.Clients.All.EventToFrontEnd(@event);
+        await _busHub.Clients.All.EventToFrontEnd(@event).ConfigureAwait(false);
     }
 
     public Task HandleBackendEvent(string subject, string eventId, string correlationId, JsonElement? eventObj = null)

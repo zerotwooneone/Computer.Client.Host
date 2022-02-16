@@ -21,14 +21,14 @@ public class BusInitialization : IHostedService
     public async Task StartAsync(CancellationToken cancellationToken)
     {
         _hubRouter.ReStartListening();
-        await computerAppService.ReStartListening();
-        await _externalRouter.RestartListening();
+        await computerAppService.ReStartListening().ConfigureAwait(false);
+        await _externalRouter.RestartListening().ConfigureAwait(false);
     }
 
     public async Task StopAsync(CancellationToken cancellationToken)
     {
         _hubRouter.StopListening();
         computerAppService.StopListening();
-        await _externalRouter.StopListening();
+        await _externalRouter.StopListening().ConfigureAwait(false);
     }
 }
