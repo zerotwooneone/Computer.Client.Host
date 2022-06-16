@@ -13,8 +13,12 @@ public class StartupController : Controller
     {
         _listService = listService;
     }
-    public async Task<IActionResult> Post(StartupParam param)
+    public async Task<IActionResult> Post([FromBody] StartupParam param)
     {
+        if (string.IsNullOrEmpty(param.UserId))
+        {
+            return Unauthorized("missing user id");
+        }
         var list = await _listService.GetDefaultListByUserId("some user id").ConfigureAwait(false);
         if (list.Success)
         {
@@ -29,5 +33,5 @@ public class StartupController : Controller
     }
 }
 
-public record StartupParam();
+public record StartupParam(string? UserId);
 public record StartupModel(ListModel Default);
